@@ -4,41 +4,41 @@
 
 ## 👤 Informação do Aluno
 **Nome:** Ricardo Martins Moreira de Carvalho
-**Número:** [Número de Aluno]  
+**Número:** 14
 **Curso:** Profissional de Informática - Sistemas
 **Ano Letivo:** 2025/2026 
-**Orientador:** [Nome do Professor Orientador]
+**Orientador:** Rosa Espirito Santo, Diana Carneiro, Patricia Carvalhais
 
 ## 📋 Descrição do Projeto
 [Descreve brevemente o teu projeto em 2-3 frases. Exemplo:]  
 Sistema de gestão de biblioteca online que permite aos utilizadores pesquisar livros, fazer reservas e gerir o seu perfil de leitor.
 
 ## 🎯 Objetivos Principais
-- [ ] Desenvolver um site dinâmico com base de dados
-- [ ] Implementar sistema de autenticação de utilizadores
-- [ ] Criar interface responsiva e intuitiva
-- [ ] Implementar funcionalidade CRUD completa
+- [✅] Desenvolver um site dinâmico com base de dados
+- [✅] Implementar sistema de autenticação de utilizadores
+- [✅] Criar interface responsiva e intuitiva
+- [✅] Implementar funcionalidade CRUD completa
 - [ ] Fazer deploy da aplicação
 
 ## 🛠️ Stack Tecnológica
 
 ### **Frontend**
-- [ ] HTML5, CSS3, JavaScript
+- [✅] HTML5, CSS3, JavaScript
 - [ ] Bootstrap/Tailwind CSS [ou outro framework]
 - [ ] React/Vue.js [opcional]
 
 ### **Backend**
-- [ ] Node.js/PHP/Python [escolher um]
+- [✅] Node.js/PHP/Python [escolher um]
 - [ ] Express/Laravel/Django [framework]
 - [ ] Autenticação JWT/Sessions
 
 ### **Base de Dados**
-- [ ] MySQL/PostgreSQL
+- [✅] MySQL/PostgreSQL
 - [ ] ORM: Sequelize/Eloquent [conforme backend]
 
 ### **Outras Ferramentas**
-- [ ] Git & GitHub
-- [ ] Docker [opcional]
+- [✅] Git & GitHub
+- [✅] Xampp
 - [ ] VSCode
 
 ## 📁 Estrutura do Projeto
