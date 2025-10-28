@@ -3,7 +3,7 @@
 # 🎓 PAP - [Título do Projeto]
 
 ## 👤 Informação do Aluno
-**Nome:** [Teu Nome Completo]  
+**Nome:** Ricardo Martins Moreira de Carvalho
 **Número:** [Número de Aluno]  
 **Curso:** Profissional de Informática - Sistemas
 **Ano Letivo:** 2025/2026 
