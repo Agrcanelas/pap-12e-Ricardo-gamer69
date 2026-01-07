@@ -1,0 +1,638 @@
+/* ============================================
+   DOA+ - Plataforma de Donativos Online
+   Arquivo de estilos customizados
+   ============================================ */
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ============================================
+   VARIÁVEIS E CORES
+   ============================================ */
+
+:root {
+    --cor-primaria: #ff6f00;
+    --cor-primaria-claro: #ff8a38;
+    --cor-primaria-escuro: #e55f00;
+    --cor-fundo: #f9f9f9;
+    --cor-texto: #333333;
+    --cor-cinza: #cccccc;
+    --cor-cinza-claro: #eeeeee;
+}
+
+/* ============================================
+   ELEMENTOS GLOBAIS
+   ============================================ */
+
+body {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.header-bar {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: fixed !important;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.logo-text {
+    font-size: 1.8em;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.logo-text:hover {
+    opacity: 0.8;
+    text-decoration: none;
+}
+
+.nav-menu {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.nav-link {
+    color: var(--cor-texto) !important;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    border: none;
+    background: transparent !important;
+}
+
+.nav-link:hover {
+    color: var(--cor-primaria) !important;
+    background-color: transparent !important;
+}
+
+.nav-link-cta {
+    color: white !important;
+    background-color: var(--cor-primaria) !important;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-link-cta:hover {
+    background-color: var(--cor-primaria-escuro) !important;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.footer-bg {
+    background-color: #ffffff;
+    border-top: 1px solid var(--cor-cinza-claro);
+    margin-top: 60px;
+}
+
+footer a {
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    opacity: 0.8;
+}
+
+/* ============================================
+   CARTÕES
+   ============================================ */
+
+.card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background-color: var(--cor-cinza-claro);
+}
+
+.card-content {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--cor-texto);
+    margin: 0 0 10px 0;
+}
+
+.card-category {
+    display: inline-block;
+    background-color: var(--cor-cinza-claro);
+    color: var(--cor-primaria);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+    margin-bottom: 12px;
+    width: fit-content;
+}
+
+.card-description {
+    font-size: 0.95em;
+    color: #666666;
+    margin-bottom: 12px;
+    flex-grow: 1;
+}
+
+.card-meta {
+    font-size: 0.9em;
+    color: #999999;
+    margin-bottom: 12px;
+}
+
+/* ============================================
+   BARRA DE PROGRESSO
+   ============================================ */
+
+.progress-container {
+    width: 100%;
+    background-color: var(--cor-cinza-claro);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+.progress-bar {
+    background: linear-gradient(to right, var(--cor-primaria), var(--cor-primaria-claro));
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    color: #666666;
+    margin-top: 8px;
+}
+
+.progress-info strong {
+    color: var(--cor-primaria);
+    font-weight: 600;
+}
+
+/* ============================================
+   BOTÕES
+   ============================================ */
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: var(--cor-primaria);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--cor-primaria-escuro);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 111, 0, 0.3);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--cor-primaria);
+    border: 2px solid var(--cor-primaria);
+}
+
+.btn-secondary:hover {
+    background-color: var(--cor-primaria);
+    color: white;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* ============================================
+   FORMULÁRIOS
+   ============================================ */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--cor-texto);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--cor-cinza);
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--cor-primaria);
+    box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.1);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* ============================================
+   SECÇÕES
+   ============================================ */
+
+.hero-section {
+    background: linear-gradient(135deg, var(--cor-primaria) 0%, var(--cor-primaria-claro) 100%);
+    color: white;
+    padding: 80px 20px;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.hero-section h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.hero-section p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+    opacity: 0.95;
+}
+
+.section-title {
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--cor-texto);
+    margin-bottom: 10px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid var(--cor-primaria);
+    display: inline-block;
+}
+
+.section-subtitle {
+    font-size: 1em;
+    color: #666666;
+    margin-bottom: 30px;
+}
+
+/* ============================================
+   GRID
+   ============================================ */
+
+.campaign-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    margin: 30px 0;
+}
+
+.campaign-item {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================
+   DESTAQUE
+   ============================================ */
+
+.featured-campaigns {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin: 40px 0;
+}
+
+/* ============================================
+   CTA (Call To Action)
+   ============================================ */
+
+.cta-section {
+    background-color: var(--cor-cinza-claro);
+    padding: 60px 20px;
+    text-align: center;
+    border-radius: 12px;
+    margin: 40px 0;
+}
+
+.cta-section h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: var(--cor-texto);
+}
+
+.cta-section p {
+    font-size: 1.1em;
+    color: #666666;
+    margin-bottom: 30px;
+}
+
+/* ============================================
+   COMO FUNCIONA
+   ============================================ */
+
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    margin: 40px 0;
+}
+
+.step {
+    text-align: center;
+    padding: 20px;
+}
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--cor-primaria);
+    color: white;
+    font-size: 1.5em;
+    font-weight: 700;
+    margin: 0 auto 15px;
+}
+
+.step h3 {
+    font-size: 1.1em;
+    margin: 10px 0;
+    color: var(--cor-texto);
+}
+
+.step p {
+    color: #666666;
+    font-size: 0.9em;
+}
+
+/* ============================================
+   DETALHES DA CAMPANHA
+   ============================================ */
+
+.campaign-details {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 40px;
+    margin: 40px 0;
+}
+
+.campaign-image {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.campaign-info {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+}
+
+.campaign-info h2 {
+    margin-top: 0;
+    color: var(--cor-texto);
+    font-size: 1.8em;
+}
+
+.institution-info {
+    background-color: var(--cor-cinza-claro);
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.institution-info h4 {
+    margin-top: 0;
+    color: var(--cor-primaria);
+}
+
+/* ============================================
+   TABELAS
+   ============================================ */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th {
+    background-color: var(--cor-primaria);
+    color: white;
+    padding: 15px;
+    text-align: left;
+}
+
+td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--cor-cinza-claro);
+}
+
+tr:hover {
+    background-color: var(--cor-cinza-claro);
+}
+
+/* ============================================
+   ALERTAS E MENSAGENS
+   ============================================ */
+
+.alert {
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    border-color: #2196F3;
+    color: #1565c0;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    border-color: #4CAF50;
+    color: #2e7d32;
+}
+
+.alert-warning {
+    background-color: #fff3e0;
+    border-color: #ff9800;
+    color: #e65100;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    border-color: #f44336;
+    color: #c62828;
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .hero-section h1 {
+        font-size: 1.8em;
+    }
+
+    .campaign-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .campaign-details {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .section-title {
+        font-size: 1.5em;
+    }
+
+    .steps-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+
+    .nav-link {
+        padding: 8px 10px !important;
+        font-size: 0.85em;
+    }
+
+    .hero-section {
+        padding: 40px 15px;
+    }
+
+    .hero-section h1 {
+        font-size: 1.4em;
+    }
+
+    .campaign-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+/* ============================================
+   UTILITÁRIOS
+   ============================================ */
+
+.w3-text-orange {
+    color: var(--cor-primaria) !important;
+}
+
+.w3-orange {
+    background-color: var(--cor-primaria) !important;
+}
+
+.w3-text-decoration-none {
+    text-decoration: none;
+}
+
+.w3-text-decoration-none:hover {
+    text-decoration: underline;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.margin-top {
+    margin-top: 30px;
+}
+
+.margin-bottom {
+    margin-bottom: 30px;
+}
+
+.padding-top {
+    padding-top: 30px;
+}
+
+.padding-bottom {
+    padding-bottom: 30px;
+}

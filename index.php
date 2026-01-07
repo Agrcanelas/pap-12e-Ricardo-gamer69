@@ -1,112 +1,260 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>DOA+ — Ajuda quem precisa</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karma">
-<style>
-body,h1,h2,h3,h4,h5,h6 {font-family: "Karma", sans-serif}
-.w3-bar-block .w3-bar-item {padding:20px}
-.campanha-btn {
-    background-color: #ff5722;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 5px;
-    text-decoration: none;
-}
-.logo {
-    font-weight: bold;
-    color: #ff5722;
-}
-</style>
-</head>
-<body>
+<?php
+/**
+ * DOA+ - Página Inicial
+ * Página inicial da plataforma de donativos online
+ */
 
-<!-- Sidebar (hidden by default) -->
-<nav class="w3-sidebar w3-bar-block w3-card w3-top w3-xlarge w3-animate-left" 
-style="display:none;z-index:2;width:40%;min-width:300px" id="mySidebar">
-  <a href="javascript:void(0)" onclick="w3_close()" class="w3-bar-item w3-button">Fechar Menu</a>
-  <a href="campanhas.php" onclick="w3_close()" class="w3-bar-item w3-button">Campanhas</a>
-  <a href="criar-campanha.php" onclick="w3_close()" class="w3-bar-item w3-button">Criar Campanha</a>
-  <a href="login.php" onclick="w3_close()" class="w3-bar-item w3-button">Login</a>
-</nav>
+$pageTitle = "Página Inicial";
+$baseUrl = '';
+?>
 
-<!-- Top menu -->
-<div class="w3-top">
-  <div class="w3-white w3-xlarge" style="max-width:1200px;margin:auto">
-    <div class="w3-button w3-padding-16 w3-left" onclick="w3_open()">☰</div>
-    <div class="w3-right w3-padding-16 logo">DOA+</div>
-    <div class="w3-center w3-padding-16">Plataforma de Donativos</div>
-  </div>
-</div>
-  
-<!-- PAGE CONTENT -->
-<div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
+<?php include 'includes/header.php'; ?>
 
-  <!-- Secção de Campanhas -->
-  <h2 class="w3-center">Campanhas em Destaque</h2>
-
-  <div class="w3-row-padding w3-padding-16 w3-center">
-
-    <div class="w3-quarter">
-      <img src="img/abrigo.jpg" alt="Campanha" style="width:100%">
-      <h3>Ajuda para o Abrigo dos Animais</h3>
-      <p>Esta instituição precisa de apoio para alimentação e cuidados veterinários.</p>
-      <a href="campanha.php?id=1" class="campanha-btn">Ver Campanha</a>
+<!-- Secção Hero -->
+<section class="hero-section">
+    <div class="w3-container">
+        <h1>Bem-vindo ao DOA+</h1>
+        <p>Conectando doadores a instituições de apoio social para fazer a diferença na comunidade</p>
+        <a href="campanhas.php" class="btn btn-primary" style="background-color: white; color: #ff6f00; margin: 10px 5px;">
+            Explorar Campanhas
+        </a>
+        <a href="criar-campanha.php" class="btn btn-primary" style="margin: 10px 5px;">
+            Criar Campanha
+        </a>
     </div>
+</section>
 
-    <div class="w3-quarter">
-      <img src="img/familias.jpg" alt="Campanha" style="width:103%">
-      <h3>Apoio a Famílias Carenciadas</h3>
-      <p>Contribui para ajudar famílias com dificuldades económicas.</p>
-      <a href="campanha.php?id=2" class="campanha-btn">Ver Campanha</a>
-    </div>
+<!-- Conteúdo principal -->
+<main class="w3-container w3-padding-64">
+    <!-- Secção: Como Funciona -->
+    <section class="w3-margin-bottom">
+        <h2 class="section-title">Como Funciona</h2>
+        <p class="section-subtitle">Simples, transparente e eficiente. Conhece os 4 passos para fazer a diferença:</p>
+        
+        <div class="steps-container">
+            <!-- Passo 1 -->
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Explorar Campanhas</h3>
+                <p>Navegue pela nossa plataforma e encontre a causa que o toca. Temos campanhas de diferentes instituições de apoio social.</p>
+            </div>
+            
+            <!-- Passo 2 -->
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Ver Detalhes</h3>
+                <p>Conheça mais sobre a instituição, o objetivo da campanha e veja o progresso da angariação de fundos.</p>
+            </div>
+            
+            <!-- Passo 3 -->
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Fazer Donativos</h3>
+                <p>Escolha o valor que deseja contribuir e ajude a instituição a atingir os seus objetivos de forma segura.</p>
+            </div>
+            
+            <!-- Passo 4 -->
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Fazer Impacto</h3>
+                <p>Receba atualizações sobre como o seu donativo foi utilizado e qual o impacto causado na comunidade.</p>
+            </div>
+        </div>
+    </section>
 
-    <div class="w3-quarter">
-      <img src="img/idosos.jpg" alt="Campanha" style="width:100%">
-      <h3>Donativos para o Lar de Idosos</h3>
-      <p>O lar procura apoio para medicamentos, cuidados e alimentação.</p>
-      <a href="campanha.php?id=3" class="campanha-btn">Ver Campanha</a>
-    </div>
+    <hr style="margin: 60px 0;">
 
-    <div class="w3-quarter">
-      <img src="img/incendios.jpg" alt="Campanha" style="width:110%">
-      <h3>Ajudar Vítimas de Incêndios</h3>
-      <p>Casa destruída? Esta campanha está a apoiar famílias afetadas.</p>
-      <a href="campanha.php?id=4" class="campanha-btn">Ver Campanha</a>
-    </div>
+    <!-- Secção: Campanhas em Destaque -->
+    <section>
+        <h2 class="section-title">Campanhas em Destaque</h2>
+        <p class="section-subtitle">Conheça algumas das campanhas mais importantes que estão em andamento:</p>
+        
+        <div class="campaign-grid">
+            <!-- Campanha 1 -->
+            <div class="card">
+                <img src="img/campanha1.jpg" alt="Luta contra a Pobreza Infantil" class="card-img" 
+                     style="background: linear-gradient(135deg, #ff6f00, #ff8a38);">
+                <div class="card-content">
+                    <h3 class="card-title">Luta contra a Pobreza Infantil</h3>
+                    <span class="card-category">Educação</span>
+                    <p class="card-description">Apoio ao acesso à educação para crianças em situação de vulnerabilidade. Ajude-nos a proporcionar material escolar e refeições.</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 65%;"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span><strong>€15.750</strong> de €25.000</span>
+                        <span>65%</span>
+                    </div>
+                    
+                    <a href="campanha.php?id=1" class="btn btn-primary" style="margin-top: auto;">Ver Campanha</a>
+                </div>
+            </div>
 
-  </div>
+            <!-- Campanha 2 -->
+            <div class="card">
+                <img src="img/campanha2.jpg" alt="Alimentação para Famílias Carenciadas" class="card-img" 
+                     style="background: linear-gradient(135deg, #ff8a38, #ffa355);">
+                <div class="card-content">
+                    <h3 class="card-title">Alimentação para Famílias Carenciadas</h3>
+                    <span class="card-category">Alimentação</span>
+                    <p class="card-description">Distribuição de alimentos e nutrição para famílias em dificuldade. Cada donativo alimenta 5 famílias por uma semana.</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 48%;"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span><strong>€8.400</strong> de €17.500</span>
+                        <span>48%</span>
+                    </div>
+                    
+                    <a href="campanha.php?id=2" class="btn btn-primary" style="margin-top: auto;">Ver Campanha</a>
+                </div>
+            </div>
 
-  <hr id="about">
+            <!-- Campanha 3 -->
+            <div class="card">
+                <img src="img/campanha3.jpg" alt="Cuidados de Saúde Mental" class="card-img" 
+                     style="background: linear-gradient(135deg, #ffa355, #ffb86e);">
+                <div class="card-content">
+                    <h3 class="card-title">Cuidados de Saúde Mental</h3>
+                    <span class="card-category">Saúde</span>
+                    <p class="card-description">Acesso a atendimento psicológico gratuito para pessoas em situação de vulnerabilidade social.</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 82%;"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span><strong>€12.300</strong> de €15.000</span>
+                        <span>82%</span>
+                    </div>
+                    
+                    <a href="campanha.php?id=3" class="btn btn-primary" style="margin-top: auto;">Ver Campanha</a>
+                </div>
+            </div>
 
-  <!-- Secção Sobre -->
-  <div class="w3-container w3-padding-32 w3-center">  
-    <h3>Sobre a DOA+</h3><br>
-    <img src="img/doa_logo.png" alt="DOA+" class="w3-image" style="display:block;margin:auto" width="300">
-    <div class="w3-padding-32">
-      <h4><b>Plataforma criada para aproximar quem precisa de quem quer ajudar.</b></h4>
-      <p>A DOA+ tem como objetivo central facilitar o processo de doação,
-      tornando-o simples, transparente e acessível. Aqui, instituições podem criar campanhas
-      e doadores escolhem como querem ajudar.</p>
-    </div>
-  </div>
+            <!-- Campanha 4 -->
+            <div class="card">
+                <img src="img/campanha4.jpg" alt="Habitação de Emergência" class="card-img" 
+                     style="background: linear-gradient(135deg, #ff6f00, #ff9e64);">
+                <div class="card-content">
+                    <h3 class="card-title">Habitação de Emergência</h3>
+                    <span class="card-category">Habitação</span>
+                    <p class="card-description">Programa de alojamento temporário para pessoas sem abrigo com serviços de reinserção social.</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 35%;"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span><strong>€5.200</strong> de €20.000</span>
+                        <span>35%</span>
+                    </div>
+                    
+                    <a href="campanha.php?id=4" class="btn btn-primary" style="margin-top: auto;">Ver Campanha</a>
+                </div>
+            </div>
 
-  <hr>
+            <!-- Campanha 5 -->
+            <div class="card">
+                <img src="img/campanha5.jpg" alt="Formação Profissional" class="card-img" 
+                     style="background: linear-gradient(135deg, #ff7d1a, #ffb86e);">
+                <div class="card-content">
+                    <h3 class="card-title">Formação Profissional para Desempregados</h3>
+                    <span class="card-category">Emprego</span>
+                    <p class="card-description">Programas de capacitação profissional e inserção laboral para pessoas desempregadas de longa duração.</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 71%;"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span><strong>€10.650</strong> de €15.000</span>
+                        <span>71%</span>
+                    </div>
+                    
+                    <a href="campanha.php?id=5" class="btn btn-primary" style="margin-top: auto;">Ver Campanha</a>
+                </div>
+            </div>
 
-  <!-- Footer -->
-  <footer class="w3-center w3-padding-32">
-    <p>© <?php echo date("Y"); ?> DOA+ — Plataforma de Donativos</p>
-  </footer>
+            <!-- Campanha 6 -->
+            <div class="card">
+                <img src="img/campanha6.jpg" alt="Apoio a Idosos" class="card-img" 
+                     style="background: linear-gradient(135deg, #ff8c42, #ffa355);">
+                <div class="card-content">
+                    <h3 class="card-title">Apoio e Cuidados a Idosos Isolados</h3>
+                    <span class="card-category">Bem-estar Social</span>
+                    <p class="card-description">Visitação, companhia e auxílio para idosos em isolamento social. Ajude-nos a trazer alegria às suas vidas.</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 56%;"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span><strong>€7.000</strong> de €12.500</span>
+                        <span>56%</span>
+                    </div>
+                    
+                    <a href="campanha.php?id=6" class="btn btn-primary" style="margin-top: auto;">Ver Campanha</a>
+                </div>
+            </div>
+        </div>
 
-</div>
+        <div class="w3-center margin-top">
+            <a href="campanhas.php" class="btn btn-primary">Ver Todas as Campanhas</a>
+        </div>
+    </section>
 
-<script>
-function w3_open() { document.getElementById("mySidebar").style.display = "block"; }
-function w3_close() { document.getElementById("mySidebar").style.display = "none"; }
-</script>
+    <hr style="margin: 60px 0;">
 
-</body>
-</html>
+    <!-- Secção: Sobre o DOA+ -->
+    <section class="w3-margin-bottom">
+        <h2 class="section-title">Sobre DOA+</h2>
+        
+        <div class="w3-row">
+            <div class="w3-col m6 w3-padding-16">
+                <h4>A Nossa Missão</h4>
+                <p>DOA+ é uma plataforma digital que conecta pessoas generosas a instituições de apoio social genuínas. Acreditamos que a tecnologia pode ser um motor de mudança social positiva, tornando as doações mais acessíveis, transparentes e impactantes.</p>
+                
+                <h4>Por Que Escolher DOA+?</h4>
+                <ul style="line-height: 1.8;">
+                    <li><strong>Transparência Total:</strong> Veja exactamente como o seu donativo é utilizado</li>
+                    <li><strong>Instituições Verificadas:</strong> Todas as organizações são cuidadosamente selecionadas</li>
+                    <li><strong>Segurança:</strong> Plataforma segura e confiável para as suas transações</li>
+                    <li><strong>Impacto Mensurável:</strong> Acompanhe o resultado da sua ajuda</li>
+                </ul>
+            </div>
+            
+            <div class="w3-col m6 w3-padding-16">
+                <h4>Números que Falam</h4>
+                <div class="w3-row">
+                    <div class="w3-col s6 w3-center w3-padding-16">
+                        <h3 style="color: #ff6f00; font-size: 2em;">€150K+</h3>
+                        <p>Total Angariado</p>
+                    </div>
+                    <div class="w3-col s6 w3-center w3-padding-16">
+                        <h3 style="color: #ff6f00; font-size: 2em;">45+</h3>
+                        <p>Campanhas Ativas</p>
+                    </div>
+                    <div class="w3-col s6 w3-center w3-padding-16">
+                        <h3 style="color: #ff6f00; font-size: 2em;">8K+</h3>
+                        <p>Doadores Ativos</p>
+                    </div>
+                    <div class="w3-col s6 w3-center w3-padding-16">
+                        <h3 style="color: #ff6f00; font-size: 2em;">30+</h3>
+                        <p>Instituições Parceiras</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr style="margin: 60px 0;">
+
+    <!-- Secção: Call to Action -->
+    <section class="cta-section">
+        <h2>Pronto para Fazer a Diferença?</h2>
+        <p>Junte-se à nossa comunidade de doadores e ajude a transformar vidas através de generosidade e solidariedade.</p>
+        <a href="registo.php" class="btn btn-primary">Registar-se Agora</a>
+    </section>
+
+</main>
+
+<?php include 'includes/footer.php'; ?>
