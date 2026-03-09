@@ -4,132 +4,26 @@
  * Página com a listagem de todas as campanhas de donativos
  */
 
+require 'config.php';
+
 $pageTitle = "Campanhas";
 $baseUrl = '';
 
-// Array com dados de campanhas (simula uma base de dados)
-$campanhas = [
-    [
-        'id' => 1,
-        'titulo' => 'Luta contra a Pobreza Infantil',
-        'categoria' => 'Educação',
-        'descricao' => 'Apoio ao acesso à educação para crianças em situação de vulnerabilidade.',
-        'valor_angariado' => 15750,
-        'valor_objetivo' => 25000,
-        'percentagem' => 63,
-        'instituicao' => 'Associação Educar'
-    ],
-    [
-        'id' => 2,
-        'titulo' => 'Alimentação para Famílias Carenciadas',
-        'categoria' => 'Alimentação',
-        'descricao' => 'Distribuição de alimentos e nutrição para famílias em dificuldade.',
-        'valor_angariado' => 8400,
-        'valor_objetivo' => 17500,
-        'percentagem' => 48,
-        'instituicao' => 'Banco Alimentar'
-    ],
-    [
-        'id' => 3,
-        'titulo' => 'Cuidados de Saúde Mental',
-        'categoria' => 'Saúde',
-        'descricao' => 'Acesso a atendimento psicológico gratuito para pessoas vulneráveis.',
-        'valor_angariado' => 12300,
-        'valor_objetivo' => 15000,
-        'percentagem' => 82,
-        'instituicao' => 'Centro Bem-Estar'
-    ],
-    [
-        'id' => 4,
-        'titulo' => 'Habitação de Emergência',
-        'categoria' => 'Habitação',
-        'descricao' => 'Programa de alojamento temporário com serviços de reinserção social.',
-        'valor_angariado' => 5200,
-        'valor_objetivo' => 20000,
-        'percentagem' => 26,
-        'instituicao' => 'Abrigo Social'
-    ],
-    [
-        'id' => 5,
-        'titulo' => 'Formação Profissional para Desempregados',
-        'categoria' => 'Emprego',
-        'descricao' => 'Programas de capacitação profissional e inserção laboral.',
-        'valor_angariado' => 10650,
-        'valor_objetivo' => 15000,
-        'percentagem' => 71,
-        'instituicao' => 'Instituto Empregabilidade'
-    ],
-    [
-        'id' => 6,
-        'titulo' => 'Apoio e Cuidados a Idosos Isolados',
-        'categoria' => 'Bem-estar Social',
-        'descricao' => 'Visitação, companhia e auxílio para idosos em isolamento social.',
-        'valor_angariado' => 7000,
-        'valor_objetivo' => 12500,
-        'percentagem' => 56,
-        'instituicao' => 'Solidariedade Sénior'
-    ],
-    [
-        'id' => 7,
-        'titulo' => 'Reabilitação de Animais de Estimação Abandonados',
-        'categoria' => 'Bem-estar Animal',
-        'descricao' => 'Abrigo e cuidados veterinários para animais resgatados.',
-        'valor_angariado' => 4500,
-        'valor_objetivo' => 10000,
-        'percentagem' => 45,
-        'instituicao' => 'Patas Amigas'
-    ],
-    [
-        'id' => 8,
-        'titulo' => 'Projecto Verde - Reflorestação',
-        'categoria' => 'Ambiente',
-        'descricao' => 'Plantação de árvores nativas e reflorestação de zonas degradadas.',
-        'valor_angariado' => 9800,
-        'valor_objetivo' => 18000,
-        'percentagem' => 54,
-        'instituicao' => 'Verde Portugal'
-    ],
-    [
-        'id' => 9,
-        'titulo' => 'Biblioteca Móvel Rural',
-        'categoria' => 'Educação',
-        'descricao' => 'Levar leitura e conhecimento a comunidades rurais isoladas.',
-        'valor_angariado' => 6200,
-        'valor_objetivo' => 12000,
-        'percentagem' => 52,
-        'instituicao' => 'Cultura para Todos'
-    ],
-    [
-        'id' => 10,
-        'titulo' => 'Estudo Bolsas Escolares',
-        'categoria' => 'Educação',
-        'descricao' => 'Bolsas de estudo completas para alunos de famílias carenciadas.',
-        'valor_angariado' => 22000,
-        'valor_objetivo' => 30000,
-        'percentagem' => 73,
-        'instituicao' => 'Futuro Educativo'
-    ],
-    [
-        'id' => 11,
-        'titulo' => 'Clínica Móvel de Saúde',
-        'categoria' => 'Saúde',
-        'descricao' => 'Atendimento médico gratuito em comunidades carenciadas.',
-        'valor_angariado' => 15500,
-        'valor_objetivo' => 22000,
-        'percentagem' => 70,
-        'instituicao' => 'Médicos sem Fronteiras'
-    ],
-    [
-        'id' => 12,
-        'titulo' => 'Programa de Inclusão Digital',
-        'categoria' => 'Tecnologia',
-        'descricao' => 'Formação informática e acesso à internet para comunidades desfavorecidas.',
-        'valor_angariado' => 8700,
-        'valor_objetivo' => 16000,
-        'percentagem' => 54,
-        'instituicao' => 'TechSolidária'
-    ]
-];
+// Buscar campanhas ativas da base de dados
+try {
+    $stmt = $pdo->prepare("SELECT * FROM campanhas WHERE status = 'ativa' ORDER BY data_criacao DESC");
+    $stmt->execute();
+    $campanhas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $campanhas = [];
+    $mensagem_erro = "Erro ao carregar campanhas: " . $e->getMessage();
+}
+
+// Função auxiliar para calcular percentagem e valor angariado
+function calcularProgresso($valor_angariado, $valor_objetivo) {
+    if ($valor_objetivo == 0) return 0;
+    return min(round(($valor_angariado / $valor_objetivo) * 100), 100);
+}
 
 // Função auxiliar para gerar cor de gradiente baseada no índice
 function getGradient($index) {
@@ -176,45 +70,52 @@ function getGradient($index) {
 
     <!-- Grid de Campanhas -->
     <div class="campaign-grid">
-        <?php foreach ($campanhas as $index => $campanha): 
-            $percentagem = round(($campanha['valor_angariado'] / $campanha['valor_objetivo']) * 100);
-        ?>
-        <div class="card campaign-card">
-            <img src="img/campanha<?php echo ($index % 6) + 1; ?>.jpg" 
-                 alt="<?php echo htmlspecialchars($campanha['titulo']); ?>" 
-                 class="card-img"
-                 style="background: <?php echo getGradient($index); ?>;">
-            
-            <div class="card-content">
-                <h3 class="card-title"><?php echo htmlspecialchars($campanha['titulo']); ?></h3>
+        <?php if (!empty($campanhas)): ?>
+            <?php foreach ($campanhas as $index => $campanha): 
+                $percentagem = calcularProgresso($campanha['valor_angariado'], $campanha['valor_objetivo']);
+            ?>
+            <div class="card campaign-card">
+                <img src="img/campanha<?php echo ($index % 6) + 1; ?>.jpg" 
+                     alt="<?php echo htmlspecialchars($campanha['titulo']); ?>" 
+                     class="card-img"
+                     style="background: <?php echo getGradient($index); ?>;">
                 
-                <span class="card-category"><?php echo htmlspecialchars($campanha['categoria']); ?></span>
-                
-                <p class="card-description"><?php echo htmlspecialchars($campanha['descricao']); ?></p>
-                
-                <p class="card-meta">
-                    <strong>Instituição:</strong> <?php echo htmlspecialchars($campanha['instituicao']); ?>
-                </p>
-                
-                <!-- Barra de Progresso -->
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: <?php echo $percentagem; ?>%;"></div>
+                <div class="card-content">
+                    <h3 class="card-title"><?php echo htmlspecialchars($campanha['titulo']); ?></h3>
+                    
+                    <span class="card-category"><?php echo htmlspecialchars($campanha['categoria']); ?></span>
+                    
+                    <p class="card-description"><?php echo htmlspecialchars(substr($campanha['descricao'], 0, 150)) . '...'; ?></p>
+                    
+                    <p class="card-meta">
+                        <strong>Instituição:</strong> <?php echo htmlspecialchars($campanha['instituicao']); ?>
+                    </p>
+                    
+                    <!-- Barra de Progresso -->
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: <?php echo $percentagem; ?>%;"></div>
+                    </div>
+                    
+                    <div class="progress-info">
+                        <span>
+                            <strong>€<?php echo number_format($campanha['valor_angariado'], 0, ',', '.'); ?></strong> 
+                            de €<?php echo number_format($campanha['valor_objetivo'], 0, ',', '.'); ?>
+                        </span>
+                        <span><?php echo $percentagem; ?>%</span>
+                    </div>
+                    
+                    <a href="campanha.php?id=<?php echo $campanha['id']; ?>" class="btn btn-primary" style="margin-top: auto;">
+                        Ver Campanha
+                    </a>
                 </div>
-                
-                <div class="progress-info">
-                    <span>
-                        <strong>€<?php echo number_format($campanha['valor_angariado'], 0, ',', '.'); ?></strong> 
-                        de €<?php echo number_format($campanha['valor_objetivo'], 0, ',', '.'); ?>
-                    </span>
-                    <span><?php echo $percentagem; ?>%</span>
-                </div>
-                
-                <a href="campanha.php?id=<?php echo $campanha['id']; ?>" class="btn btn-primary" style="margin-top: auto;">
-                    Ver Campanha
-                </a>
             </div>
-        </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                <h3 style="color: #999;">Não foram encontradas campanhas ativas.</h3>
+                <p style="color: #ccc;">Volta em breve para ver novas campanhas!</p>
+            </div>
+        <?php endif; ?>
     </div>
 
 </main>

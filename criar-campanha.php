@@ -4,13 +4,59 @@
  * Página com formulário para criação de novas campanhas
  */
 
+require 'config.php';
+
 $pageTitle = "Criar Campanha";
 $baseUrl = '';
 $formulario_enviado = false;
+$erro_campanha = '';
 
-// Simular envio de formulário (sem processamento real)
+// Verificar se o utilizador está autenticado
+if (!isset($_SESSION['id_utilizador'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// Processar envio do formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $formulario_enviado = true;
+    $titulo = $_POST['titulo'] ?? '';
+    $categoria = $_POST['categoria'] ?? '';
+    $objetivo = $_POST['objetivo'] ?? 0;
+    $descricao = $_POST['descricao_completa'] ?? '';
+    $instituicao = $_POST['instituicao'] ?? '';
+    $data_inicio = $_POST['data_inicio'] ?? null;
+    $data_fim = $_POST['data_termino'] ?? null;
+    
+    // Validação básica
+    if (empty($titulo) || empty($categoria) || empty($objetivo) || empty($descricao) || empty($instituicao)) {
+        $erro_campanha = 'Todos os campos obrigatórios devem ser preenchidos.';
+    } elseif ($objetivo < 100) {
+        $erro_campanha = 'O objetivo financeiro deve ser no mínimo €100.';
+    } else {
+        try {
+            // Inserir campanha na base de dados
+            $stmt = $pdo->prepare("
+                INSERT INTO campanhas 
+                (titulo, descricao, categoria, valor_objetivo, instituicao, id_criador, data_inicio, data_fim, status)
+                VALUES (:titulo, :descricao, :categoria, :valor_objetivo, :instituicao, :id_criador, :data_inicio, :data_fim, 'pendente')
+            ");
+            
+            $stmt->execute([
+                ':titulo' => $titulo,
+                ':descricao' => $descricao,
+                ':categoria' => $categoria,
+                ':valor_objetivo' => $objetivo,
+                ':instituicao' => $instituicao,
+                ':id_criador' => $_SESSION['id_utilizador'],
+                ':data_inicio' => $data_inicio,
+                ':data_fim' => $data_fim
+            ]);
+            
+            $formulario_enviado = true;
+        } catch (PDOException $e) {
+            $erro_campanha = 'Erro ao criar a campanha: ' . $e->getMessage();
+        }
+    }
 }
 ?>
 
@@ -30,7 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if ($formulario_enviado): ?>
     <!-- Mensagem de sucesso -->
     <div class="alert alert-success w3-margin-bottom">
-        <strong>Sucesso!</strong> O seu formulário foi submetido com sucesso. Entraremos em contacto em breve para validar a sua campanha.
+        <strong>Sucesso!</strong> A sua campanha foi submetida com sucesso. Entraremos em contacto em breve para validar a sua campanha.
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($erro_campanha)): ?>
+    <!-- Mensagem de erro -->
+    <div class="alert alert-error w3-margin-bottom" style="background-color: #fee; border: 1px solid #fcc; color: #c33; padding: 12px; border-radius: 4px;">
+        <strong>Erro:</strong> <?php echo htmlspecialchars($erro_campanha); ?>
     </div>
     <?php endif; ?>
 
