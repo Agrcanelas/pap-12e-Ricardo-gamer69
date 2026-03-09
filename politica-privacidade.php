@@ -26,7 +26,7 @@ $baseUrl = '';
 
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">2. Informações que Recolhemos</h3>
         <p>
-            <strong>Informações fornecidas por você:</strong>
+            <strong>Informações fornecidas por ti:</strong>
         </p>
         <ul style="color: #666;">
             <li>Nome completo</li>
@@ -90,18 +90,18 @@ $baseUrl = '';
             O DOA+ utiliza cookies para:
         </p>
         <ul style="color: #666;">
-            <li>Manter você autenticado na plataforma</li>
+            <li>Manter-te autenticado na plataforma</li>
             <li>Lembrar suas preferências</li>
             <li>Analisar o uso da plataforma</li>
             <li>Melhorar a experiência do utilizador</li>
         </ul>
         <p>
-            Você pode desativar cookies nas configurações do seu navegador, mas isso pode afetar a funcionalidade do serviço.
+            Tu podes desativar cookies nas configurações do teu navegador, mas isso pode afetar a funcionalidade do serviço.
         </p>
 
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">7. Seus Direitos</h3>
         <p>
-            Você tem o direito de:
+            Tu tens o direito de:
         </p>
         <ul style="color: #666;">
             <li>Aceder às suas informações pessoais</li>
@@ -133,7 +133,7 @@ $baseUrl = '';
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">11. Alterações a Política de Privacidade</h3>
         <p>
             O DOA+ pode atualizar este Política de Privacidade ocasionalmente. 
-            Você será notificado de alterações significativas e sua continuidade de uso constitui aceitação das mudanças.
+            Tu serás notificado de alterações significativas e a tua continuação de uso constitui aceitação das mudanças.
         </p>
 
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">12. Contacto</h3>
@@ -142,8 +142,8 @@ $baseUrl = '';
             pode contactar-nos em:
         </p>
         <p style="margin: 15px 0; color: #333;">
-            <strong>Email:</strong> suporte@doaplusbrasil.com.br<br>
-            <strong>Endereço:</strong> DOA+, Plataforma de Doações, Brasil
+            <strong>Email:</strong> suporte@doaplus.pt<br>
+            <strong>Endereço:</strong> DOA+, Plataforma de Donativos, Portugal
         </p>
 
         <hr style="margin: 40px 0;">

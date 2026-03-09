@@ -9,10 +9,18 @@ require 'config.php';
 $pageTitle = "Campanhas";
 $baseUrl = '';
 
+// Obter categoria do filtro (se existir)
+$categoria_filtro = isset($_GET['categoria']) && !empty($_GET['categoria']) ? trim($_GET['categoria']) : '';
+
 // Buscar campanhas ativas da base de dados
 try {
-    $stmt = $pdo->prepare("SELECT * FROM campanhas WHERE status = 'ativa' ORDER BY data_criacao DESC");
-    $stmt->execute();
+    if ($categoria_filtro) {
+        $stmt = $pdo->prepare("SELECT * FROM campanhas WHERE status = 'ativa' AND categoria = :categoria ORDER BY data_criacao DESC");
+        $stmt->execute(['categoria' => $categoria_filtro]);
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM campanhas WHERE status = 'ativa' ORDER BY data_criacao DESC");
+        $stmt->execute();
+    }
     $campanhas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $campanhas = [];
@@ -44,8 +52,13 @@ function getGradient($index) {
 <!-- Secção Hero -->
 <section class="hero-section">
     <div class="w3-container">
-        <h1>Todas as Campanhas</h1>
-        <p>Explora as campanhas ativas e escolhe em qual causes queres fazer a tua contribuição</p>
+        <?php if ($categoria_filtro): ?>
+            <h1>Campanhas de <?php echo htmlspecialchars(ucfirst($categoria_filtro)); ?></h1>
+            <p>Explora as campanhas ativas desta categoria e apoia as causas que te importam</p>
+        <?php else: ?>
+            <h1>Todas as Campanhas</h1>
+            <p>Explora as campanhas ativas e escolhe em qual causes queres fazer a tua contribuição</p>
+        <?php endif; ?>
     </div>
 </section>
 
@@ -56,12 +69,15 @@ function getGradient($index) {
         <div class="w3-col m12">
             <h4>Filtrar por Categoria:</h4>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn btn-primary" onclick="filterCampaigns('all')" style="cursor: pointer;">Todas</button>
-                <button class="btn btn-secondary" onclick="filterCampaigns('educacao')" style="cursor: pointer;">Educação</button>
-                <button class="btn btn-secondary" onclick="filterCampaigns('saude')" style="cursor: pointer;">Saúde</button>
-                <button class="btn btn-secondary" onclick="filterCampaigns('alimentacao')" style="cursor: pointer;">Alimentação</button>
-                <button class="btn btn-secondary" onclick="filterCampaigns('habitacao')" style="cursor: pointer;">Habitação</button>
-                <button class="btn btn-secondary" onclick="filterCampaigns('emprego')" style="cursor: pointer;">Emprego</button>
+                <a href="campanhas.php" class="btn <?php echo !$categoria_filtro ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Todas</a>
+                <a href="campanhas.php?categoria=Saude" class="btn <?php echo $categoria_filtro === 'Saude' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Saúde</a>
+                <a href="campanhas.php?categoria=Educacao" class="btn <?php echo $categoria_filtro === 'Educacao' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Educação</a>
+                <a href="campanhas.php?categoria=Ambiente" class="btn <?php echo $categoria_filtro === 'Ambiente' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Ambiente</a>
+                <a href="campanhas.php?categoria=Social" class="btn <?php echo $categoria_filtro === 'Social' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Social</a>
+                <a href="campanhas.php?categoria=Emergencia" class="btn <?php echo $categoria_filtro === 'Emergencia' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Emergência</a>
+                <a href="campanhas.php?categoria=Animais" class="btn <?php echo $categoria_filtro === 'Animais' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Animais</a>
+                <a href="campanhas.php?categoria=Cultura" class="btn <?php echo $categoria_filtro === 'Cultura' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Cultura</a>
+                <a href="campanhas.php?categoria=Outro" class="btn <?php echo $categoria_filtro === 'Outro' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Outro</a>
             </div>
         </div>
     </div>
@@ -121,11 +137,3 @@ function getGradient($index) {
 </main>
 
 <?php include 'includes/footer.php'; ?>
-
-<!-- Script para filtro (sem JavaScript funcional, apenas estrutura) -->
-<script>
-    function filterCampaigns(category) {
-        // Função de filtro - será implementada com backend
-        console.log('Filtrar por: ' + category);
-    }
-</script>

@@ -19,7 +19,9 @@
                 <div class="w3-bar-item w3-right nav-menu">
                     <a href="<?php echo isset($baseUrl) ? $baseUrl : ''; ?>index.php" class="w3-bar-item w3-button nav-link">Início</a>
                     <a href="<?php echo isset($baseUrl) ? $baseUrl : ''; ?>campanhas.php" class="w3-bar-item w3-button nav-link">Campanhas</a>
+                    <?php if(isset($_SESSION['id_utilizador']) && $_SESSION['tipo_utilizador'] === 'instituicao'): ?>
                     <a href="<?php echo isset($baseUrl) ? $baseUrl : ''; ?>criar-campanha.php" class="w3-bar-item w3-button nav-link">Criar Campanha</a>
+                    <?php endif; ?>
 
                     <?php if(isset($_SESSION['id_utilizador'])): ?>
                         <div class="dropdown-container">
@@ -28,7 +30,7 @@
                             </button>
                             <div class="user-dropdown">
                                 <a href="<?php echo isset($baseUrl) ? $baseUrl : ''; ?>perfil.php">
-                                    <i class="fa fa-user-circle"></i> Meu Perfil
+                                    <i class="fa fa-user-circle"></i> O Meu Perfil
                                 </a>
                                 <a href="<?php echo isset($baseUrl) ? $baseUrl : ''; ?>logout.php" class="logout-link">
                                     <i class="fa fa-sign-out-alt"></i> Sair

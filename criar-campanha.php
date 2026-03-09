@@ -17,28 +17,70 @@ if (!isset($_SESSION['id_utilizador'])) {
     exit;
 }
 
+// Verificar se o utilizador é uma instituição (apenas instituições podem criar campanhas)
+if ($_SESSION['tipo_utilizador'] !== 'instituicao') {
+    header("Location: index.php");
+    exit;
+}
+
 // Processar envio do formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titulo = $_POST['titulo'] ?? '';
     $categoria = $_POST['categoria'] ?? '';
     $objetivo = $_POST['objetivo'] ?? 0;
     $descricao = $_POST['descricao_completa'] ?? '';
-    $instituicao = $_POST['instituicao'] ?? '';
     $data_inicio = $_POST['data_inicio'] ?? null;
     $data_fim = $_POST['data_termino'] ?? null;
+    $caminhoImagem = null;
+    
+    // Processar upload de imagem
+    if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
+        $arquivo_temporario = $_FILES['imagem']['tmp_name'];
+        $nome_arquivo = $_FILES['imagem']['name'];
+        $tipo_arquivo = $_FILES['imagem']['type'];
+        $tamanho_arquivo = $_FILES['imagem']['size'];
+        
+        // Validar tipo de arquivo
+        $tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($tipo_arquivo, $tipos_permitidos)) {
+            $erro_campanha = 'Tipo de ficheiro não permitido. Use JPEG, PNG, GIF ou WEBP.';
+        } elseif ($tamanho_arquivo > 5 * 1024 * 1024) { // 5MB
+            $erro_campanha = 'O ficheiro é muito grande. Máximo de 5MB.';
+        } else {
+            // Criar diretório se não existir
+            $pasta_uploads = 'uploads/campanhas';
+            if (!is_dir($pasta_uploads)) {
+                mkdir($pasta_uploads, 0755, true);
+            }
+            
+            // Gerar nome único para o arquivo
+            $extensao = pathinfo($nome_arquivo, PATHINFO_EXTENSION);
+            $nome_novo = 'campanha_' . time() . '_' . uniqid() . '.' . $extensao;
+            $caminho_completo = $pasta_uploads . '/' . $nome_novo;
+            
+            // Mover arquivo
+            if (move_uploaded_file($arquivo_temporario, $caminho_completo)) {
+                $caminhoImagem = $caminho_completo;
+            } else {
+                $erro_campanha = 'Erro ao enviar o ficheiro. Tente novamente.';
+            }
+        }
+    }
     
     // Validação básica
-    if (empty($titulo) || empty($categoria) || empty($objetivo) || empty($descricao) || empty($instituicao)) {
+    if (empty($titulo) || empty($categoria) || empty($objetivo) || empty($descricao)) {
         $erro_campanha = 'Todos os campos obrigatórios devem ser preenchidos.';
     } elseif ($objetivo < 100) {
         $erro_campanha = 'O objetivo financeiro deve ser no mínimo €100.';
+    } elseif (empty($caminhoImagem)) {
+        $erro_campanha = 'É necessário fazer upload de uma imagem para a campanha.';
     } else {
         try {
             // Inserir campanha na base de dados
             $stmt = $pdo->prepare("
                 INSERT INTO campanhas 
-                (titulo, descricao, categoria, valor_objetivo, instituicao, id_criador, data_inicio, data_fim, status)
-                VALUES (:titulo, :descricao, :categoria, :valor_objetivo, :instituicao, :id_criador, :data_inicio, :data_fim, 'pendente')
+                (titulo, descricao, categoria, valor_objetivo, id_criador, data_inicio, data_fim, imagem, status)
+                VALUES (:titulo, :descricao, :categoria, :valor_objetivo, :id_criador, :data_inicio, :data_fim, :imagem, 'pendente')
             ");
             
             $stmt->execute([
@@ -46,10 +88,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':descricao' => $descricao,
                 ':categoria' => $categoria,
                 ':valor_objetivo' => $objetivo,
-                ':instituicao' => $instituicao,
                 ':id_criador' => $_SESSION['id_utilizador'],
                 ':data_inicio' => $data_inicio,
-                ':data_fim' => $data_fim
+                ':data_fim' => $data_fim,
+                ':imagem' => $caminhoImagem
             ]);
             
             $formulario_enviado = true;
@@ -107,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </ul>
             </div>
 
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data">
                 <!-- Secção 1: Informações Básicas -->
                 <fieldset style="border: 1px solid var(--cor-cinza); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
                     <legend style="padding: 0 10px; font-weight: 600; color: #ff6f00;">
@@ -141,6 +183,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="objetivo">Objetivo Financeiro (€) *</label>
                         <input type="number" id="objetivo" name="objetivo" placeholder="Ex: 5000" min="100" step="100" required>
                         <small style="color: #999;">Mínimo €100</small>
+                    </div>
+
+                    <!-- Campo de Upload de Imagem -->
+                    <div class="form-group">
+                        <label for="imagem">Foto da Campanha *</label>
+                        <div style="border: 2px dashed #ff6f00; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer; transition: background 0.3s;"
+                             id="drop-zone"
+                             onmouseover="this.style.background='#fff3e0';"
+                             onmouseout="this.style.background='white';">
+                            <input type="file" id="imagem" name="imagem" accept="image/jpeg,image/png,image/gif,image/webp" required style="display: none;">
+                            <div id="upload-text">
+                                <p style="margin: 0; font-size: 1.1em; font-weight: 600; color: #ff6f00;">📸 Clica para enviar uma foto</p>
+                                <p style="margin: 10px 0 0 0; font-size: 0.9em; color: #999;">ou arrasta a imagem aqui</p>
+                                <p style="margin: 10px 0 0 0; font-size: 0.85em; color: #ccc;">JPEG, PNG, GIF ou WEBP (Máximo 5MB)</p>
+                            </div>
+                            <img id="preview-imagem" style="display: none; max-width: 100%; max-height: 300px; border-radius: 6px; margin-top: 15px;">
+                        </div>
+                        <small style="color: #999; display: block; margin-top: 10px;">Escolhe uma imagem impactante que represente a tua campanha</small>
                     </div>
                 </fieldset>
 
@@ -178,52 +238,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </fieldset>
 
-                <!-- Secção 3: Informações da Instituição -->
+                <!-- Secção 3: Datas -->
                 <fieldset style="border: 1px solid var(--cor-cinza); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
                     <legend style="padding: 0 10px; font-weight: 600; color: #ff6f00;">
-                        <h4 style="margin: 0;">3. Informações da Instituição</h4>
-                    </legend>
-
-                    <div class="form-group">
-                        <label for="instituicao">Nome da Instituição/Organizaçã *</label>
-                        <input type="text" id="instituicao" name="instituicao" 
-                               placeholder="Ex: Associação de Apoio Social XYZ" required>
-                    </div>
-
-                    <div class="w3-row">
-                        <div class="w3-col m6 w3-padding-8">
-                            <div class="form-group">
-                                <label for="email_instituicao">Email da Instituição *</label>
-                                <input type="email" id="email_instituicao" name="email_instituicao" 
-                                       placeholder="contato@instituicao.pt" required>
-                            </div>
-                        </div>
-                        <div class="w3-col m6 w3-padding-8">
-                            <div class="form-group">
-                                <label for="telefone_instituicao">Telefone *</label>
-                                <input type="tel" id="telefone_instituicao" name="telefone_instituicao" 
-                                       placeholder="(+351) 2xx-xxx-xxx" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="localizacao">Localização (Distrito/Cidade) *</label>
-                        <input type="text" id="localizacao" name="localizacao" 
-                               placeholder="Ex: Lisboa, Portugal" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="numero_beneficiarios">Número de Beneficiários Estimado *</label>
-                        <input type="number" id="numero_beneficiarios" name="numero_beneficiarios" 
-                               placeholder="Ex: 250" min="1" required>
-                    </div>
-                </fieldset>
-
-                <!-- Secção 4: Datas -->
-                <fieldset style="border: 1px solid var(--cor-cinza); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
-                    <legend style="padding: 0 10px; font-weight: 600; color: #ff6f00;">
-                        <h4 style="margin: 0;">4. Calendário da Campanha</h4>
+                        <h4 style="margin: 0;">3. Calendário da Campanha</h4>
                     </legend>
 
                     <div class="w3-row">
@@ -244,23 +262,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <small style="color: #999;">A duração recomendada é entre 30 a 90 dias</small>
                 </fieldset>
 
-                <!-- Secção 5: Termos e Condições -->
+                <!-- Secção 4: Termos e Condições -->
                 <fieldset style="border: 1px solid var(--cor-cinza); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
                     <legend style="padding: 0 10px; font-weight: 600; color: #ff6f00;">
-                        <h4 style="margin: 0;">5. Concordância</h4>
+                        <h4 style="margin: 0;">4. Concordância</h4>
                     </legend>
 
                     <div style="margin: 20px 0;">
                         <input type="checkbox" id="termos" name="termos" required>
                         <label for="termos" style="display: inline; margin-left: 10px;">
-                            Concordo com os <a href="#" style="color: #ff6f00;">Termos e Condições</a> da plataforma DOA+
+                            Concordo com os <a href="termos-condicoes.php" target="_blank" style="color: #ff6f00; text-decoration: underline;">Termos e Condições</a> da plataforma DOA+
                         </label>
                     </div>
 
                     <div style="margin: 20px 0;">
                         <input type="checkbox" id="privacidade" name="privacidade" required>
                         <label for="privacidade" style="display: inline; margin-left: 10px;">
-                            Li e concordo com a <a href="#" style="color: #ff6f00;">Política de Privacidade</a>
+                            Li e concordo com a <a href="politica-privacidade.php" target="_blank" style="color: #ff6f00; text-decoration: underline;">Política de Privacidade</a>
                         </label>
                     </div>
 
@@ -317,5 +335,141 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
 </main>
+
+<!-- Script para Upload de Imagem -->
+<script>
+const dropZone = document.getElementById('drop-zone');
+const inputFile = document.getElementById('imagem');
+const uploadText = document.getElementById('upload-text');
+const previewImg = document.getElementById('preview-imagem');
+
+// Clique para selecionar arquivo
+dropZone.addEventListener('click', () => {
+    inputFile.click();
+});
+
+// Quando um arquivo é selecionado
+inputFile.addEventListener('change', (e) => {
+    mostrarPreview(e.target.files[0]);
+});
+
+// Drag and drop
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.background = '#fff3e0';
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.style.background = 'white';
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.background = 'white';
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        inputFile.files = files;
+        mostrarPreview(files[0]);
+    }
+});
+
+// Função para mostrar preview da imagem
+function mostrarPreview(file) {
+    if (!file || !file.type.startsWith('image/')) {
+        alert('Por favor, seleciona um arquivo de imagem válido (JPEG, PNG, GIF ou WEBP)');
+        return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+        alert('O ficheiro é muito grande. O máximo permitido é 5MB.');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        uploadText.style.display = 'none';
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+// Validação customizada do formulário
+document.querySelector('form').addEventListener('submit', function(e) {
+    // Validar campos obrigatórios
+    const titulo = document.getElementById('titulo').value.trim();
+    const categoria = document.getElementById('categoria').value.trim();
+    const objetivo = document.getElementById('objetivo').value.trim();
+    const descricao = document.getElementById('descricao_completa').value.trim();
+    const dataInicio = document.getElementById('data_inicio').value;
+    const dataTermino = document.getElementById('data_termino').value;
+    const imagem = document.getElementById('imagem').files.length;
+    const termos = document.getElementById('termos').checked;
+    const privacidade = document.getElementById('privacidade').checked;
+    
+    if (!titulo) {
+        e.preventDefault();
+        alert('Por favor, preenche o título da campanha.');
+        document.getElementById('titulo').focus();
+        return false;
+    }
+    
+    if (!categoria) {
+        e.preventDefault();
+        alert('Por favor, seleciona uma categoria.');
+        document.getElementById('categoria').focus();
+        return false;
+    }
+    
+    if (!objetivo || objetivo < 100) {
+        e.preventDefault();
+        alert('O objetivo financeiro deve ser no mínimo €100.');
+        document.getElementById('objetivo').focus();
+        return false;
+    }
+    
+    if (!descricao) {
+        e.preventDefault();
+        alert('Por favor, preenche a descrição completa da campanha.');
+        document.getElementById('descricao_completa').focus();
+        return false;
+    }
+    
+    if (!dataInicio) {
+        e.preventDefault();
+        alert('Por favor, seleciona a data de início da campanha.');
+        document.getElementById('data_inicio').focus();
+        return false;
+    }
+    
+    if (!dataTermino) {
+        e.preventDefault();
+        alert('Por favor, seleciona a data de término da campanha.');
+        document.getElementById('data_termino').focus();
+        return false;
+    }
+    
+    if (imagem === 0) {
+        e.preventDefault();
+        alert('Por favor, faz upload de uma imagem para a campanha.');
+        document.getElementById('imagem').focus();
+        return false;
+    }
+    
+    if (!termos) {
+        e.preventDefault();
+        alert('Por favor, concorda com os Termos e Condições.');
+        document.getElementById('termos').focus();
+        return false;
+    }
+    
+    if (!privacidade) {
+        e.preventDefault();
+        alert('Por favor, concorda com a Política de Privacidade.');
+        document.getElementById('privacidade').focus();
+        return false;
+    }
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>

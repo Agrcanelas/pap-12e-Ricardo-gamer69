@@ -20,8 +20,8 @@ $baseUrl = '';
 
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">1. Aceitação dos Termos</h3>
         <p>
-            Ao utilizar a plataforma DOA+, você concorda em aceitar e cumprir estes Termos e Condições. 
-            Se não concordar com qualquer parte destes termos, por favor, não utilize a plataforma.
+            Ao utilizar a plataforma DOA+, tu concordas em aceitar e cumprir estes Termos e Condições. 
+            Se não concordares com qualquer parte destes termos, por favor, não utilizes a plataforma.
         </p>
 
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">2. Descrição do Serviço</h3>
@@ -32,7 +32,8 @@ $baseUrl = '';
 
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">3. Elegibilidade do Utilizador</h3>
         <p>
-            Para registar-se no DOA+, você deve:
+            Para registar-te no DOA+, tu deves:
+        </p>
         </p>
         <ul style="color: #666;">
             <li>Ter pelo menos 18 anos de idade</li>
@@ -43,7 +44,7 @@ $baseUrl = '';
 
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">4. Conta de Utilizador</h3>
         <p>
-            Você é responsável por:
+            Tu és responsável por:
         </p>
         <ul style="color: #666;">
             <li>Manter a confidencialidade da sua senha</li>
@@ -123,7 +124,7 @@ $baseUrl = '';
         <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">13. Contacto</h3>
         <p>
             Pode contactar-nos com dúvidas sobre estes Termos e Condições enviando um email para 
-            <strong>suporte@doaplusbrasil.com.br</strong>
+            <strong>suporte@doaplus.pt</strong>
         </p>
 
         <hr style="margin: 40px 0;">

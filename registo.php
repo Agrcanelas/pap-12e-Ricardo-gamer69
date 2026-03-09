@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <!-- Email -->
                     <div class="form-group">
                         <label for="email">Email *</label>
-                        <input type="email" id="email" name="email" placeholder="usuario@exemplo.com" required>
+                        <input type="email" id="email" name="email" placeholder="utilizador@exemplo.com" required>
                     </div>
 
                     <!-- Tipo de Utilizador -->
