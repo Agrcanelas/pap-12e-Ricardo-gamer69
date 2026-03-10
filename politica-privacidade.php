@@ -3,7 +3,7 @@
  * DOA+ - Política de Privacidade
  */
 
-require 'config.php';
+require_once 'config.php';
 
 $pageTitle = "Política de Privacidade";
 $baseUrl = '';

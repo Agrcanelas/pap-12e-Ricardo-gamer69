@@ -1,349 +1,233 @@
 <?php
-/**
- * DOA+ - Perfil do Utilizador
- * Página para visualizar e editar informações do perfil
- */
+require_once 'config.php';
+$pageTitle = 'Perfil';
 
-require 'config.php';
-
-$pageTitle = "Meu Perfil";
-$baseUrl = '';
-
-// Verificar se o utilizador está autenticado
-if (!isset($_SESSION['id_utilizador'])) {
-    header("Location: login.php");
-    exit;
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php"); exit;
 }
 
-// Buscar dados do utilizador
+$user_id = $_SESSION['user_id'];
+$msg_tipo = $msg_texto = '';
+
+// Processar atualização
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nome       = trim($_POST['nome'] ?? '');
+    $email      = trim($_POST['email'] ?? '');
+    $senha_atual = $_POST['senha_atual'] ?? '';
+    $nova_senha  = $_POST['nova_senha'] ?? '';
+
+    if (empty($nome) || empty($email)) {
+        $msg_tipo = 'erro'; $msg_texto = 'Nome e email são obrigatórios.';
+    } else {
+        try {
+            // Verificar email único
+            $stmt = $pdo->prepare("SELECT id FROM utilizadores WHERE email = :email AND id != :id");
+            $stmt->execute(['email' => $email, 'id' => $user_id]);
+            if ($stmt->fetch()) {
+                $msg_tipo = 'erro'; $msg_texto = 'Este email já está em uso.';
+            } else {
+                if (!empty($nova_senha)) {
+                    if (strlen($nova_senha) < 8) {
+                        $msg_tipo = 'erro'; $msg_texto = 'A nova senha deve ter pelo menos 8 caracteres.';
+                        goto fim_processamento;
+                    }
+                    $stmt = $pdo->prepare("SELECT senha FROM utilizadores WHERE id = :id");
+                    $stmt->execute(['id' => $user_id]);
+                    $atual = $stmt->fetch();
+                    if (!password_verify($senha_atual, $atual['senha'])) {
+                        $msg_tipo = 'erro'; $msg_texto = 'Senha atual incorreta.';
+                        goto fim_processamento;
+                    }
+                    $hash = password_hash($nova_senha, PASSWORD_DEFAULT);
+                    $stmt = $pdo->prepare("UPDATE utilizadores SET nome=:nome, email=:email, senha=:senha WHERE id=:id");
+                    $stmt->execute(['nome'=>$nome,'email'=>$email,'senha'=>$hash,'id'=>$user_id]);
+                } else {
+                    $stmt = $pdo->prepare("UPDATE utilizadores SET nome=:nome, email=:email WHERE id=:id");
+                    $stmt->execute(['nome'=>$nome,'email'=>$email,'id'=>$user_id]);
+                }
+                $_SESSION['user_nome'] = $nome;
+                $msg_tipo = 'sucesso'; $msg_texto = 'Perfil atualizado com sucesso!';
+            }
+        } catch (PDOException $e) {
+            $msg_tipo = 'erro'; $msg_texto = 'Erro ao atualizar. Tenta novamente.';
+        }
+    }
+    fim_processamento:
+}
+
+// Carregar dados
 try {
     $stmt = $pdo->prepare("SELECT * FROM utilizadores WHERE id = :id");
-    $stmt->execute(['id' => $_SESSION['id_utilizador']]);
-    $utilizador = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->execute(['id' => $user_id]);
+    $user = $stmt->fetch();
 
-    if (!$utilizador) {
-        session_destroy();
-        header("Location: login.php");
-        exit;
-    }
-} catch(PDOException $e) {
-    die("Erro ao carregar perfil: " . $e->getMessage());
+    // Campanhas do utilizador
+    $stmt_c = $pdo->prepare("SELECT id, titulo, status, valor_angariado, valor_objetivo FROM campanhas WHERE id_criador = :id ORDER BY data_criacao DESC");
+    $stmt_c->execute(['id' => $user_id]);
+    $minhas_campanhas = $stmt_c->fetchAll();
+
+    // Doações feitas
+    $stmt_d = $pdo->prepare("SELECT d.montante, d.data_doacao, c.titulo FROM doacoes d JOIN campanhas c ON d.id_campanha = c.id WHERE d.id_doador = :id ORDER BY d.data_doacao DESC LIMIT 10");
+    $stmt_d->execute(['id' => $user_id]);
+    $minhas_doacoes = $stmt_d->fetchAll();
+} catch (PDOException $e) {
+    $user = ['nome' => 'Utilizador', 'email' => '', 'tipo_utilizador' => 'doador'];
+    $minhas_campanhas = []; $minhas_doacoes = [];
 }
 
-// Buscar campanhas criadas (se for instituição)
-$campanhas_criadas = [];
-if ($utilizador['tipo_utilizador'] === 'instituicao') {
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM campanhas WHERE id_criador = :id_criador ORDER BY data_criacao DESC");
-        $stmt->execute(['id_criador' => $_SESSION['id_utilizador']]);
-        $campanhas_criadas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch(PDOException $e) {
-        $campanhas_criadas = [];
-    }
-}
-
-// Buscar doações feitas (se for doador)
-$doacoes_feitas = [];
-if ($utilizador['tipo_utilizador'] === 'doador') {
-    try {
-        $stmt = $pdo->prepare("
-            SELECT d.*, c.titulo as campanha_titulo
-            FROM doacoes d
-            JOIN campanhas c ON d.id_campanha = c.id
-            WHERE d.id_doador = :id_doador
-            ORDER BY d.data_doacao DESC
-        ");
-        $stmt->execute(['id_doador' => $_SESSION['id_utilizador']]);
-        $doacoes_feitas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch(PDOException $e) {
-        $doacoes_feitas = [];
-    }
-}
-
-// Processar atualização de perfil
-$mensagem_sucesso = '';
-$mensagem_erro = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['atualizar_perfil'])) {
-        $nome = trim($_POST['nome'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-
-        if (empty($nome) || empty($email)) {
-            $mensagem_erro = 'Nome e email são obrigatórios.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $mensagem_erro = 'Email inválido.';
-        } else {
-            try {
-                // Verificar se o email já existe (exceto para o próprio utilizador)
-                $stmt = $pdo->prepare("SELECT id FROM utilizadores WHERE email = :email AND id != :id");
-                $stmt->execute(['email' => $email, 'id' => $_SESSION['id_utilizador']]);
-
-                if ($stmt->fetch()) {
-                    $mensagem_erro = 'Este email já está registado por outro utilizador.';
-                } else {
-                    // Atualizar perfil
-                    $stmt = $pdo->prepare("UPDATE utilizadores SET nome = :nome, email = :email WHERE id = :id");
-                    $stmt->execute([
-                        'nome' => $nome,
-                        'email' => $email,
-                        'id' => $_SESSION['id_utilizador']
-                    ]);
-
-                    // Atualizar sessão
-                    $_SESSION['nome'] = $nome;
-
-                    $mensagem_sucesso = 'Perfil atualizado com sucesso!';
-                }
-            } catch(PDOException $e) {
-                $mensagem_erro = 'Erro ao atualizar perfil: ' . $e->getMessage();
-            }
-        }
-    } elseif (isset($_POST['alterar_senha'])) {
-        $senha_atual = $_POST['senha_atual'] ?? '';
-        $nova_senha = $_POST['nova_senha'] ?? '';
-        $confirmar_senha = $_POST['confirmar_senha'] ?? '';
-
-        if (empty($senha_atual) || empty($nova_senha) || empty($confirmar_senha)) {
-            $mensagem_erro = 'Todos os campos de senha são obrigatórios.';
-        } elseif (!password_verify($senha_atual, $utilizador['senha'])) {
-            $mensagem_erro = 'Senha atual incorreta.';
-        } elseif (strlen($nova_senha) < 8) {
-            $mensagem_erro = 'A nova senha deve ter no mínimo 8 caracteres.';
-        } elseif ($nova_senha !== $confirmar_senha) {
-            $mensagem_erro = 'As novas senhas não correspondem.';
-        } else {
-            try {
-                $nova_senha_hash = password_hash($nova_senha, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE utilizadores SET senha = :senha WHERE id = :id");
-                $stmt->execute([
-                    'senha' => $nova_senha_hash,
-                    'id' => $_SESSION['id_utilizador']
-                ]);
-
-                $mensagem_sucesso = 'Senha alterada com sucesso!';
-            } catch(PDOException $e) {
-                $mensagem_erro = 'Erro ao alterar senha: ' . $e->getMessage();
-            }
-        }
-    }
-}
-
-include 'includes/header.php';
+$tab_ativa = $_GET['tab'] ?? 'conta';
 ?>
+<?php include 'includes/header.php'; ?>
 
-<main class="w3-container" style="margin-top: 100px; padding: 60px 20px;">
-    <div class="w3-row">
-        <!-- Coluna Principal -->
-        <div class="w3-col m8">
+<div class="perfil-page">
+    <!-- Sidebar -->
+    <aside class="perfil-sidebar">
+        <div class="perfil-header">
+            <div class="avatar"><?php echo strtoupper(mb_substr($user['nome'], 0, 1)); ?></div>
+            <h3><?php echo htmlspecialchars($user['nome']); ?></h3>
+            <p><?php echo htmlspecialchars($user['email']); ?></p>
+            <span class="badge badge-<?php echo $user['tipo_utilizador']; ?>" style="margin-top:8px;">
+                <?php echo ucfirst($user['tipo_utilizador']); ?>
+            </span>
+        </div>
+        <nav class="perfil-nav">
+            <a href="?tab=conta" class="<?php echo $tab_ativa === 'conta' ? 'active' : ''; ?>">
+                <i class="fa fa-user"></i> Definições da conta
+            </a>
+            <a href="?tab=campanhas" class="<?php echo $tab_ativa === 'campanhas' ? 'active' : ''; ?>">
+                <i class="fa fa-bullhorn"></i> As minhas campanhas
+                <?php if (!empty($minhas_campanhas)): ?>
+                    <span style="margin-left:auto;background:var(--verde);color:white;border-radius:50px;padding:2px 8px;font-size:0.75rem;"><?php echo count($minhas_campanhas); ?></span>
+                <?php endif; ?>
+            </a>
+            <a href="?tab=doacoes" class="<?php echo $tab_ativa === 'doacoes' ? 'active' : ''; ?>">
+                <i class="fa fa-heart"></i> Donativos feitos
+            </a>
+            <hr style="margin:8px 0;border:none;border-top:1px solid var(--cinza-borda);">
+            <a href="logout.php" class="nav-logout">
+                <i class="fa fa-right-from-bracket"></i> Sair
+            </a>
+        </nav>
+    </aside>
 
-            <!-- Cabeçalho do Perfil -->
-            <div class="w3-card-4 w3-margin-bottom">
-                <div class="w3-container w3-orange" style="padding: 20px;">
-                    <h2 style="margin: 0; color: white;">
-                        <i class="fa fa-user"></i> Meu Perfil
-                    </h2>
-                    <p style="margin: 5px 0 0 0; color: white; opacity: 0.9;">
-                        <?php echo htmlspecialchars($utilizador['nome']); ?>
-                    </p>
-                </div>
+    <!-- Conteúdo -->
+    <main class="perfil-content">
 
-                <div class="w3-container w3-padding-16">
-                    <!-- Mensagens -->
-                    <?php if (!empty($mensagem_sucesso)): ?>
-                        <div class="w3-panel w3-green w3-margin-bottom">
-                            <p><?php echo htmlspecialchars($mensagem_sucesso); ?></p>
+        <?php if ($msg_texto): ?>
+            <div class="alert alert-<?php echo $msg_tipo; ?>">
+                <i class="fa fa-<?php echo $msg_tipo === 'sucesso' ? 'check-circle' : 'circle-exclamation'; ?>"></i>
+                <?php echo htmlspecialchars($msg_texto); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($tab_ativa === 'conta'): ?>
+            <h2>Definições da conta</h2>
+            <span class="subtitle">Gere as tuas informações pessoais e segurança.</span>
+
+            <form method="POST" novalidate>
+                <div class="secao-form">
+                    <h3>Informações pessoais</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nome completo</label>
+                            <input type="text" name="nome" class="form-input" value="<?php echo htmlspecialchars($user['nome']); ?>" required>
                         </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($mensagem_erro)): ?>
-                        <div class="w3-panel w3-red w3-margin-bottom">
-                            <p><?php echo htmlspecialchars($mensagem_erro); ?></p>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Informações Básicas -->
-                    <div class="w3-row">
-                        <div class="w3-col m6">
-                            <h4><i class="fa fa-info-circle"></i> Informações da Conta</h4>
-                            <p><strong>Nome:</strong> <?php echo htmlspecialchars($utilizador['nome']); ?></p>
-                            <p><strong>Email:</strong> <?php echo htmlspecialchars($utilizador['email']); ?></p>
-                            <p><strong>Tipo:</strong>
-                                <?php
-                                $tipo_label = [
-                                    'doador' => 'Doador Individual',
-                                    'instituicao' => 'Instituição/Organização',
-                                    'admin' => 'Administrador'
-                                ];
-                                echo htmlspecialchars($tipo_label[$utilizador['tipo_utilizador']] ?? $utilizador['tipo_utilizador']);
-                                ?>
-                            </p>
-                            <p><strong>Data de Registo:</strong> <?php echo date('d/m/Y', strtotime($utilizador['data_registo'])); ?></p>
-                        </div>
-
-                        <div class="w3-col m6">
-                            <h4><i class="fa fa-chart-bar"></i> Estatísticas</h4>
-                            <?php if ($utilizador['tipo_utilizador'] === 'doador'): ?>
-                                <p><strong>Doações Feitas:</strong> <?php echo count($doacoes_feitas); ?></p>
-                                <p><strong>Total Doado:</strong>
-                                    €<?php
-                                    $total_doado = array_sum(array_column($doacoes_feitas, 'montante'));
-                                    echo number_format($total_doado, 2, ',', '.');
-                                    ?>
-                                </p>
-                            <?php elseif ($utilizador['tipo_utilizador'] === 'instituicao'): ?>
-                                <p><strong>Campanhas Criadas:</strong> <?php echo count($campanhas_criadas); ?></p>
-                                <p><strong>Campanhas Ativas:</strong>
-                                    <?php
-                                    $ativas = array_filter($campanhas_criadas, function($c) { return $c['status'] === 'ativa'; });
-                                    echo count($ativas);
-                                    ?>
-                                </p>
-                            <?php endif; ?>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-input" value="<?php echo htmlspecialchars($user['email']); ?>" required>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Formulário de Edição -->
-            <div class="w3-card-4 w3-margin-bottom">
-                <div class="w3-container w3-light-grey" style="padding: 15px;">
-                    <h4 style="margin: 0;"><i class="fa fa-edit"></i> Editar Perfil</h4>
+                <div class="secao-form">
+                    <h3>Alterar palavra-passe</h3>
+                    <p style="font-size:0.85rem;color:var(--cinza-texto);margin-bottom:16px;">Deixa em branco para não alterar.</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Senha atual</label>
+                            <input type="password" name="senha_atual" class="form-input" placeholder="••••••••">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nova senha</label>
+                            <input type="password" name="nova_senha" class="form-input" placeholder="Mín. 8 caracteres" minlength="8">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="w3-container w3-padding-16">
-                    <form method="POST" action="">
-                        <div class="w3-row">
-                            <div class="w3-col m6 w3-padding-small">
-                                <label for="nome">Nome Completo *</label>
-                                <input type="text" id="nome" name="nome" class="w3-input w3-border"
-                                       value="<?php echo htmlspecialchars($utilizador['nome']); ?>" required>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-floppy-disk"></i> Guardar alterações
+                </button>
+            </form>
+
+        <?php elseif ($tab_ativa === 'campanhas'): ?>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <h2 style="margin-bottom:4px;">As minhas campanhas</h2>
+                    <span class="subtitle" style="margin:0;"><?php echo count($minhas_campanhas); ?> campanhas criadas</span>
+                </div>
+                <a href="criar-campanha.php" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Nova campanha</a>
+            </div>
+
+            <?php if (empty($minhas_campanhas)): ?>
+                <div class="sem-resultados">
+                    <div class="icon">📢</div>
+                    <h3>Ainda não criaste nenhuma campanha</h3>
+                    <p>Lança a tua primeira causa e começa a angariar fundos!</p>
+                    <a href="criar-campanha.php" class="btn btn-primary" style="margin-top:16px;">Criar campanha</a>
+                </div>
+            <?php else: ?>
+                <div style="display:flex;flex-direction:column;gap:14px;">
+                    <?php foreach ($minhas_campanhas as $camp):
+                        $perc = $camp['valor_objetivo'] > 0 ? min(100, round(($camp['valor_angariado'] / $camp['valor_objetivo']) * 100)) : 0;
+                    ?>
+                    <div style="padding:20px;background:var(--cinza-bg);border-radius:var(--radius-md);border:1.5px solid var(--cinza-borda);display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:200px;">
+                            <div style="font-weight:600;margin-bottom:4px;"><?php echo htmlspecialchars($camp['titulo']); ?></div>
+                            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                                <span class="badge badge-<?php echo $camp['status']; ?>"><?php echo ucfirst($camp['status']); ?></span>
+                                <span style="font-size:0.82rem;color:var(--cinza-texto);">
+                                    €<?php echo number_format($camp['valor_angariado'], 0, ',', '.'); ?> de €<?php echo number_format($camp['valor_objetivo'], 0, ',', '.'); ?>
+                                </span>
                             </div>
-                            <div class="w3-col m6 w3-padding-small">
-                                <label for="email">Email *</label>
-                                <input type="email" id="email" name="email" class="w3-input w3-border"
-                                       value="<?php echo htmlspecialchars($utilizador['email']); ?>" required>
+                            <div class="progress-bar-bg" style="margin-top:10px;height:5px;">
+                                <div class="progress-bar-fill" style="width:<?php echo $perc; ?>%;"></div>
                             </div>
                         </div>
-
-                        <button type="submit" name="atualizar_perfil" class="w3-button w3-orange w3-margin-top">
-                            <i class="fa fa-save"></i> Atualizar Perfil
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Alterar Senha -->
-            <div class="w3-card-4 w3-margin-bottom">
-                <div class="w3-container w3-light-grey" style="padding: 15px;">
-                    <h4 style="margin: 0;"><i class="fa fa-lock"></i> Alterar Senha</h4>
-                </div>
-
-                <div class="w3-container w3-padding-16">
-                    <form method="POST" action="">
-                        <div class="w3-row">
-                            <div class="w3-col m12 w3-padding-small">
-                                <label for="senha_atual">Senha Atual *</label>
-                                <input type="password" id="senha_atual" name="senha_atual" class="w3-input w3-border" required>
-                            </div>
-                        </div>
-
-                        <div class="w3-row">
-                            <div class="w3-col m6 w3-padding-small">
-                                <label for="nova_senha">Nova Senha *</label>
-                                <input type="password" id="nova_senha" name="nova_senha" class="w3-input w3-border"
-                                       minlength="8" required>
-                                <small class="w3-text-grey">Mínimo 8 caracteres</small>
-                            </div>
-                            <div class="w3-col m6 w3-padding-small">
-                                <label for="confirmar_senha">Confirmar Nova Senha *</label>
-                                <input type="password" id="confirmar_senha" name="confirmar_senha" class="w3-input w3-border"
-                                       minlength="8" required>
-                            </div>
-                        </div>
-
-                        <button type="submit" name="alterar_senha" class="w3-button w3-orange w3-margin-top">
-                            <i class="fa fa-key"></i> Alterar Senha
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Barra Lateral -->
-        <div class="w3-col m4">
-
-            <!-- Atividades Recentes -->
-            <div class="w3-card-4 w3-margin-bottom">
-                <div class="w3-container w3-light-grey" style="padding: 15px;">
-                    <h5 style="margin: 0;"><i class="fa fa-history"></i> Atividades Recentes</h5>
-                </div>
-
-                <div class="w3-container w3-padding-16">
-                    <?php if ($utilizador['tipo_utilizador'] === 'doador' && !empty($doacoes_feitas)): ?>
-                        <?php foreach (array_slice($doacoes_feitas, 0, 5) as $doacao): ?>
-                            <div class="w3-margin-bottom" style="border-left: 3px solid #ff6f00; padding-left: 10px;">
-                                <small class="w3-text-grey">
-                                    <?php echo date('d/m/Y', strtotime($doacao['data_doacao'])); ?>
-                                </small>
-                                <p style="margin: 2px 0; font-size: 0.9em;">
-                                    Doação de €<?php echo number_format($doacao['montante'], 2, ',', '.'); ?>
-                                </p>
-                                <small style="color: #666;">
-                                    <?php echo htmlspecialchars(substr($doacao['campanha_titulo'], 0, 30)); ?>...
-                                </small>
-                            </div>
-                        <?php endforeach; ?>
-
-                    <?php elseif ($utilizador['tipo_utilizador'] === 'instituicao' && !empty($campanhas_criadas)): ?>
-                        <?php foreach (array_slice($campanhas_criadas, 0, 5) as $campanha): ?>
-                            <div class="w3-margin-bottom" style="border-left: 3px solid #ff6f00; padding-left: 10px;">
-                                <small class="w3-text-grey">
-                                    <?php echo date('d/m/Y', strtotime($campanha['data_criacao'])); ?>
-                                </small>
-                                <p style="margin: 2px 0; font-size: 0.9em;">
-                                    Campanha criada
-                                </p>
-                                <small style="color: #666;">
-                                    <?php echo htmlspecialchars(substr($campanha['titulo'], 0, 30)); ?>...
-                                </small>
-                            </div>
-                        <?php endforeach; ?>
-
-                    <?php else: ?>
-                        <p class="w3-text-grey" style="font-style: italic;">
-                            Nenhuma atividade recente.
-                        </p>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <!-- Ações Rápidas -->
-            <div class="w3-card-4">
-                <div class="w3-container w3-light-grey" style="padding: 15px;">
-                    <h5 style="margin: 0;"><i class="fa fa-bolt"></i> Ações Rápidas</h5>
-                </div>
-
-                <div class="w3-container w3-padding-16">
-                    <a href="campanhas.php" class="w3-button w3-block w3-orange w3-margin-bottom">
-                        <i class="fa fa-search"></i> Explorar Campanhas
-                    </a>
-
-                    <?php if ($utilizador['tipo_utilizador'] === 'instituicao'): ?>
-                        <a href="criar-campanha.php" class="w3-button w3-block w3-green w3-margin-bottom">
-                            <i class="fa fa-plus"></i> Criar Campanha
+                        <a href="campanha.php?id=<?php echo $camp['id']; ?>" class="btn btn-outline btn-sm">
+                            Ver <i class="fa fa-arrow-right"></i>
                         </a>
-                    <?php endif; ?>
-
-                    <a href="logout.php" class="w3-button w3-block w3-red">
-                        <i class="fa fa-sign-out-alt"></i> Terminar Sessão
-                    </a>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
-            </div>
+            <?php endif; ?>
 
-        </div>
-    </div>
-</main>
+        <?php elseif ($tab_ativa === 'doacoes'): ?>
+            <h2>Donativos feitos</h2>
+            <span class="subtitle"><?php echo count($minhas_doacoes); ?> donativos realizados.</span>
+
+            <?php if (empty($minhas_doacoes)): ?>
+                <div class="sem-resultados">
+                    <div class="icon">💝</div>
+                    <h3>Ainda não fizeste nenhum donativo</h3>
+                    <p>Explora as campanhas e apoia uma causa que te mova!</p>
+                    <a href="campanhas.php" class="btn btn-primary" style="margin-top:16px;">Explorar campanhas</a>
+                </div>
+            <?php else: ?>
+                <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+                    <?php foreach ($minhas_doacoes as $d): ?>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--cinza-bg);border-radius:var(--radius-md);border:1.5px solid var(--cinza-borda);flex-wrap:wrap;gap:8px;">
+                        <div>
+                            <div style="font-weight:600;font-size:0.95rem;"><?php echo htmlspecialchars($d['titulo']); ?></div>
+                            <div style="font-size:0.8rem;color:var(--cinza-texto);"><?php echo date('d/m/Y', strtotime($d['data_doacao'])); ?></div>
+                        </div>
+                        <span style="font-weight:700;color:var(--verde);font-size:1.1rem;">€<?php echo number_format($d['montante'], 2, ',', '.'); ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+    </main>
+</div>
 
 <?php include 'includes/footer.php'; ?>

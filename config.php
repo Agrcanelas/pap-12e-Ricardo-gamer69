@@ -1,30 +1,36 @@
 <?php
-// Inicia a sessão
-session_start();
+/**
+ * DOA+ — Configuração da Base de Dados
+ * Ligação única com PDO (segura e consistente)
+ */
 
-// Configurações da base de dados
-$host = "localhost";
-$dbname = "doa_plus";
-$username = "root";
-$password = "";
-$charset = "utf8mb4";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$host    = 'localhost';
+$db      = 'doa_plus';
+$user    = 'root';
+$pass    = '';
+$charset = 'utf8mb4';
+
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
 
 try {
-    $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
-    $pdo = new PDO($dsn, $username, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
-} catch(PDOException $e) {
-    die("<h2>❌ Erro na Conexão à Base de Dados</h2>
-    <p><strong>Mensagem de Erro:</strong> " . htmlspecialchars($e->getMessage()) . "</p>
-    <p><strong>Solução:</strong></p>
-    <ul>
-        <li>Verifica se o MySQL está ativo no XAMPP</li>
-        <li>Verifica se a base de dados <code>doa_plus</code> foi criada</li>
-        <li>Para criar: importa o ficheiro <code>doa_plus.sql</code> no phpMyAdmin</li>
-        <li>URL do phpMyAdmin: http://localhost/phpmyadmin/</li>
-    </ul>");
+    $pdo = new PDO($dsn, $user, $pass, $options);
+} catch (PDOException $e) {
+    // Em produção: não mostrar detalhes do erro
+    die('<div style="font-family:sans-serif;padding:40px;text-align:center;color:#b91c1c;">
+        <h2>Erro de ligação à base de dados.</h2>
+        <p>Por favor verifica se o MySQL está a correr e as credenciais em config.php estão corretas.</p>
+    </div>');
 }
+
+// Compatibilidade: alias $conn para código legado
+// (Removido — usar sempre $pdo)
 ?>

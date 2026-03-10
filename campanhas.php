@@ -1,139 +1,179 @@
 <?php
-/**
- * DOA+ - Listagem de Campanhas
- * Página com a listagem de todas as campanhas de donativos
- */
+require_once 'config.php';
+$pageTitle = 'Explorar Campanhas';
 
-require 'config.php';
+$categoria = $_GET['categoria'] ?? '';
+$busca     = $_GET['busca'] ?? '';
+$pagina    = max(1, intval($_GET['pagina'] ?? 1));
+$por_pagina = 9;
+$offset    = ($pagina - 1) * $por_pagina;
 
-$pageTitle = "Campanhas";
-$baseUrl = '';
+$categorias = ['Social', 'Alimentação', 'Educação', 'Saúde', 'Habitação', 'Animais', 'Emergência'];
 
-// Obter categoria do filtro (se existir)
-$categoria_filtro = isset($_GET['categoria']) && !empty($_GET['categoria']) ? trim($_GET['categoria']) : '';
+// Query dinâmica
+$where = ["c.status = 'ativa'"];
+$params = [];
 
-// Buscar campanhas ativas da base de dados
+if ($categoria) {
+    $where[] = "c.categoria = :categoria";
+    $params['categoria'] = $categoria;
+}
+
+if ($busca) {
+    $where[] = "(c.titulo LIKE :busca OR c.descricao LIKE :busca2 OR c.instituicao LIKE :busca3)";
+    $params['busca']  = "%$busca%";
+    $params['busca2'] = "%$busca%";
+    $params['busca3'] = "%$busca%";
+}
+
+$where_sql = 'WHERE ' . implode(' AND ', $where);
+
 try {
-    if ($categoria_filtro) {
-        $stmt = $pdo->prepare("SELECT * FROM campanhas WHERE status = 'ativa' AND categoria = :categoria ORDER BY data_criacao DESC");
-        $stmt->execute(['categoria' => $categoria_filtro]);
-    } else {
-        $stmt = $pdo->prepare("SELECT * FROM campanhas WHERE status = 'ativa' ORDER BY data_criacao DESC");
-        $stmt->execute();
+    // Total
+    $stmt_total = $pdo->prepare("SELECT COUNT(*) FROM campanhas c $where_sql");
+    $stmt_total->execute($params);
+    $total = $stmt_total->fetchColumn();
+    $total_paginas = ceil($total / $por_pagina);
+
+    // Campanhas
+    $params['limit']  = $por_pagina;
+    $params['offset'] = $offset;
+    $stmt = $pdo->prepare("SELECT * FROM campanhas c $where_sql ORDER BY c.data_criacao DESC LIMIT :limit OFFSET :offset");
+    $stmt->bindValue('limit',  $por_pagina, PDO::PARAM_INT);
+    $stmt->bindValue('offset', $offset,     PDO::PARAM_INT);
+    foreach ($params as $k => $v) {
+        if ($k !== 'limit' && $k !== 'offset') $stmt->bindValue($k, $v);
     }
-    $campanhas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->execute();
+    $campanhas = $stmt->fetchAll();
 } catch (PDOException $e) {
     $campanhas = [];
-    $mensagem_erro = "Erro ao carregar campanhas: " . $e->getMessage();
+    $total = 0;
+    $total_paginas = 1;
 }
 
-// Função auxiliar para calcular percentagem e valor angariado
-function calcularProgresso($valor_angariado, $valor_objetivo) {
-    if ($valor_objetivo == 0) return 0;
-    return min(round(($valor_angariado / $valor_objetivo) * 100), 100);
-}
-
-// Função auxiliar para gerar cor de gradiente baseada no índice
-function getGradient($index) {
-    $gradients = [
-        'linear-gradient(135deg, #ff6f00, #ff8a38)',
-        'linear-gradient(135deg, #ff8a38, #ffa355)',
-        'linear-gradient(135deg, #ffa355, #ffb86e)',
-        'linear-gradient(135deg, #ff6f00, #ff9e64)',
-        'linear-gradient(135deg, #ff7d1a, #ffb86e)',
-        'linear-gradient(135deg, #ff8c42, #ffa355)',
-    ];
-    return $gradients[$index % count($gradients)];
-}
+$categorias_icones = [
+    'Social'      => 'fa-hands-holding-heart',
+    'Alimentação' => 'fa-bowl-food',
+    'Educação'    => 'fa-graduation-cap',
+    'Saúde'       => 'fa-heart-pulse',
+    'Habitação'   => 'fa-house',
+    'Animais'     => 'fa-paw',
+    'Emergência'  => 'fa-triangle-exclamation',
+];
 ?>
-
 <?php include 'includes/header.php'; ?>
 
-<!-- Secção Hero -->
-<section class="hero-section">
-    <div class="w3-container">
-        <?php if ($categoria_filtro): ?>
-            <h1>Campanhas de <?php echo htmlspecialchars(ucfirst($categoria_filtro)); ?></h1>
-            <p>Explora as campanhas ativas desta categoria e apoia as causas que te importam</p>
-        <?php else: ?>
-            <h1>Todas as Campanhas</h1>
-            <p>Explora as campanhas ativas e escolhe em qual causes queres fazer a tua contribuição</p>
-        <?php endif; ?>
-    </div>
-</section>
-
-<!-- Conteúdo principal -->
-<main class="w3-container w3-padding-64">
-    <!-- Filtros -->
-    <div class="w3-row w3-margin-bottom">
-        <div class="w3-col m12">
-            <h4>Filtrar por Categoria:</h4>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="campanhas.php" class="btn <?php echo !$categoria_filtro ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Todas</a>
-                <a href="campanhas.php?categoria=Saude" class="btn <?php echo $categoria_filtro === 'Saude' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Saúde</a>
-                <a href="campanhas.php?categoria=Educacao" class="btn <?php echo $categoria_filtro === 'Educacao' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Educação</a>
-                <a href="campanhas.php?categoria=Ambiente" class="btn <?php echo $categoria_filtro === 'Ambiente' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Ambiente</a>
-                <a href="campanhas.php?categoria=Social" class="btn <?php echo $categoria_filtro === 'Social' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Social</a>
-                <a href="campanhas.php?categoria=Emergencia" class="btn <?php echo $categoria_filtro === 'Emergencia' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Emergência</a>
-                <a href="campanhas.php?categoria=Animais" class="btn <?php echo $categoria_filtro === 'Animais' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Animais</a>
-                <a href="campanhas.php?categoria=Cultura" class="btn <?php echo $categoria_filtro === 'Cultura' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Cultura</a>
-                <a href="campanhas.php?categoria=Outro" class="btn <?php echo $categoria_filtro === 'Outro' ? 'btn-primary' : 'btn-secondary'; ?>" style="cursor: pointer; text-decoration: none;">Outro</a>
-            </div>
+<div class="campanhas-page">
+    <!-- Cabeçalho -->
+    <div class="campanhas-header">
+        <div>
+            <h1 style="margin-bottom:6px;">Explorar Campanhas</h1>
+            <p style="color:var(--cinza-texto);">
+                <?php echo $total; ?> campanha<?php echo $total != 1 ? 's' : ''; ?> 
+                <?php echo $categoria ? 'em ' . htmlspecialchars($categoria) : 'ativas'; ?>
+            </p>
         </div>
+        <a href="criar-campanha.php" class="btn btn-primary">
+            <i class="fa fa-plus"></i> Criar Campanha
+        </a>
     </div>
 
-    <hr style="margin: 40px 0;">
+    <!-- Barra de pesquisa -->
+    <form method="GET" style="margin-bottom:24px;">
+        <?php if ($categoria): ?>
+            <input type="hidden" name="categoria" value="<?php echo htmlspecialchars($categoria); ?>">
+        <?php endif; ?>
+        <div style="display:flex;gap:10px;max-width:500px;">
+            <input type="text" name="busca" value="<?php echo htmlspecialchars($busca); ?>"
+                   class="form-input" placeholder="Pesquisar campanhas..." style="border-radius:50px;">
+            <button type="submit" class="btn btn-primary" style="white-space:nowrap;">
+                <i class="fa fa-search"></i>
+            </button>
+        </div>
+    </form>
 
-    <!-- Grid de Campanhas -->
-    <div class="campaign-grid">
-        <?php if (!empty($campanhas)): ?>
-            <?php foreach ($campanhas as $index => $campanha): 
-                $percentagem = calcularProgresso($campanha['valor_angariado'], $campanha['valor_objetivo']);
+    <!-- Filtros por categoria -->
+    <div class="filtros-bar">
+        <a href="campanhas.php<?php echo $busca ? '?busca='.urlencode($busca) : ''; ?>" 
+           class="filtro-btn <?php echo !$categoria ? 'active' : ''; ?>">
+            Todas
+        </a>
+        <?php foreach ($categorias as $cat): ?>
+        <a href="campanhas.php?categoria=<?php echo urlencode($cat); ?><?php echo $busca ? '&busca='.urlencode($busca) : ''; ?>" 
+           class="filtro-btn <?php echo $categoria === $cat ? 'active' : ''; ?>">
+            <i class="fa <?php echo $categorias_icones[$cat] ?? 'fa-tag'; ?>"></i>
+            <?php echo htmlspecialchars($cat); ?>
+        </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Grid de campanhas -->
+    <?php if (empty($campanhas)): ?>
+        <div class="sem-resultados">
+            <div class="icon">🔍</div>
+            <h3>Nenhuma campanha encontrada</h3>
+            <p>Tenta pesquisar por outro termo ou explorar todas as categorias.</p>
+            <a href="campanhas.php" class="btn btn-outline" style="margin-top:20px;">Ver todas</a>
+        </div>
+    <?php else: ?>
+        <div class="campanhas-grid">
+            <?php foreach ($campanhas as $c):
+                $perc = $c['valor_objetivo'] > 0 ? min(100, round(($c['valor_angariado'] / $c['valor_objetivo']) * 100)) : 0;
+                $icone = $categorias_icones[$c['categoria']] ?? 'fa-heart';
             ?>
-            <div class="card campaign-card">
-                <img src="img/campanha<?php echo ($index % 6) + 1; ?>.jpg" 
-                     alt="<?php echo htmlspecialchars($campanha['titulo']); ?>" 
-                     class="card-img"
-                     style="background: <?php echo getGradient($index); ?>;">
-                
-                <div class="card-content">
-                    <h3 class="card-title"><?php echo htmlspecialchars($campanha['titulo']); ?></h3>
-                    
-                    <span class="card-category"><?php echo htmlspecialchars($campanha['categoria']); ?></span>
-                    
-                    <p class="card-description"><?php echo htmlspecialchars(substr($campanha['descricao'], 0, 150)) . '...'; ?></p>
-                    
-                    <p class="card-meta">
-                        <strong>Instituição:</strong> <?php echo htmlspecialchars($campanha['instituicao']); ?>
-                    </p>
-                    
-                    <!-- Barra de Progresso -->
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: <?php echo $percentagem; ?>%;"></div>
+            <div class="card-campanha">
+                <div class="card-img-wrap">
+                    <?php if (!empty($c['imagem']) && file_exists('uploads/' . $c['imagem'])): ?>
+                        <img src="uploads/<?php echo htmlspecialchars($c['imagem']); ?>" alt="<?php echo htmlspecialchars($c['titulo']); ?>">
+                    <?php else: ?>
+                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--verde),#00c875);">
+                            <i class="fa <?php echo $icone; ?>" style="font-size:3rem;color:rgba(255,255,255,0.5);"></i>
+                        </div>
+                    <?php endif; ?>
+                    <span class="card-categoria"><?php echo htmlspecialchars($c['categoria']); ?></span>
+                </div>
+                <div class="card-body">
+                    <h3><?php echo htmlspecialchars($c['titulo']); ?></h3>
+                    <p class="card-desc"><?php echo htmlspecialchars(mb_substr($c['descricao'], 0, 110)) . '...'; ?></p>
+
+                    <div class="progress-wrap">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width:<?php echo $perc; ?>%;"></div>
+                        </div>
+                        <div class="progress-info">
+                            <span class="progress-valor">€<?php echo number_format($c['valor_angariado'], 0, ',', '.'); ?></span>
+                            <span class="progress-perc"><?php echo $perc; ?>%</span>
+                        </div>
                     </div>
-                    
-                    <div class="progress-info">
-                        <span>
-                            <strong>€<?php echo number_format($campanha['valor_angariado'], 0, ',', '.'); ?></strong> 
-                            de €<?php echo number_format($campanha['valor_objetivo'], 0, ',', '.'); ?>
+
+                    <div class="card-footer-info">
+                        <span class="card-instituicao">
+                            <i class="fa fa-building"></i> <?php echo htmlspecialchars(mb_substr($c['instituicao'], 0, 30)); ?>
                         </span>
-                        <span><?php echo $percentagem; ?>%</span>
+                        <a href="campanha.php?id=<?php echo $c['id']; ?>" class="btn btn-primary btn-sm">Apoiar</a>
                     </div>
-                    
-                    <a href="campanha.php?id=<?php echo $campanha['id']; ?>" class="btn btn-primary" style="margin-top: auto;">
-                        Ver Campanha
-                    </a>
                 </div>
             </div>
             <?php endforeach; ?>
-        <?php else: ?>
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                <h3 style="color: #999;">Não foram encontradas campanhas ativas.</h3>
-                <p style="color: #ccc;">Volta em breve para ver novas campanhas!</p>
-            </div>
-        <?php endif; ?>
-    </div>
+        </div>
 
-</main>
+        <!-- Paginação -->
+        <?php if ($total_paginas > 1): ?>
+        <div style="display:flex;justify-content:center;gap:8px;margin-top:48px;flex-wrap:wrap;">
+            <?php for ($p = 1; $p <= $total_paginas; $p++): ?>
+                <a href="?pagina=<?php echo $p; ?><?php echo $categoria ? '&categoria='.urlencode($categoria) : ''; ?><?php echo $busca ? '&busca='.urlencode($busca) : ''; ?>"
+                   style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;
+                          background:<?php echo $p === $pagina ? 'var(--verde)' : 'var(--branco)'; ?>;
+                          color:<?php echo $p === $pagina ? 'white' : 'var(--preto)'; ?>;
+                          border:1.5px solid <?php echo $p === $pagina ? 'var(--verde)' : 'var(--cinza-borda)'; ?>;
+                          font-weight:600;font-size:0.9rem;">
+                    <?php echo $p; ?>
+                </a>
+            <?php endfor; ?>
+        </div>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>
 
 <?php include 'includes/footer.php'; ?>

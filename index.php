@@ -1,198 +1,188 @@
 <?php
-// Configurações da página
-require 'config.php';
+require_once 'config.php';
+$pageTitle = 'Início';
 
-$pageTitle = "Página Inicial";
-$baseUrl = '';
-
-// Inclui o header
-include 'includes/header.php';
-
-// Buscar campanhas da BD (as 6 mais recentes)
+// Buscar campanhas em destaque
 try {
-    $stmt = $pdo->query("SELECT * FROM campanhas WHERE status='ativa' ORDER BY data_criacao DESC LIMIT 8");
-    $campanhas = $stmt->fetchAll();
-} catch(PDOException $e) {
-    $campanhas = [];
+    $stmt = $pdo->query("SELECT * FROM campanhas WHERE status = 'ativa' ORDER BY valor_angariado DESC LIMIT 6");
+    $campanhas_destaque = $stmt->fetchAll();
+
+    // Estatísticas
+    $stmt_stats = $pdo->query("SELECT 
+        COUNT(*) as total_campanhas,
+        COALESCE(SUM(valor_angariado), 0) as total_angariado
+        FROM campanhas WHERE status IN ('ativa','concluida')");
+    $stats = $stmt_stats->fetch();
+
+    $stmt_users = $pdo->query("SELECT COUNT(*) as total FROM utilizadores WHERE tipo_utilizador != 'admin'");
+    $total_users = $stmt_users->fetch()['total'];
+} catch (PDOException $e) {
+    $campanhas_destaque = [];
+    $stats = ['total_campanhas' => 0, 'total_angariado' => 0];
+    $total_users = 0;
 }
+
+$categorias_icones = [
+    'Social'      => 'fa-hands-holding-heart',
+    'Alimentação' => 'fa-bowl-food',
+    'Educação'    => 'fa-graduation-cap',
+    'Saúde'       => 'fa-heart-pulse',
+    'Habitação'   => 'fa-house',
+    'Animais'     => 'fa-paw',
+    'Emergência'  => 'fa-triangle-exclamation',
+];
 ?>
+<?php include 'includes/header.php'; ?>
 
-<!-- Conteúdo principal -->
-<main style="margin-top: 70px;">
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-badge">
+        <i class="fa fa-circle-check"></i> Plataforma segura e transparente
+    </div>
+    <h1>Juntos fazemos a<br><em>diferença</em> que importa</h1>
+    <p class="hero-sub">
+        Apoia causas reais, lança a tua campanha e ajuda quem mais precisa — de forma simples, segura e gratuita.
+    </p>
+    <div class="hero-actions">
+        <a href="campanhas.php" class="btn btn-primary btn-lg">
+            <i class="fa fa-search"></i> Explorar Campanhas
+        </a>
+        <a href="criar-campanha.php" class="btn btn-outline btn-lg">
+            <i class="fa fa-plus"></i> Criar Campanha
+        </a>
+    </div>
 
-    <!-- HERO SECTION COM FUNDO -->
-    <section class="hero-section" style="background: linear-gradient(135deg, #ff6f00 0%, #ff8a38 100%); color: white; padding: 80px 20px; text-align: center;">
-        <div class="w3-container" style="max-width: 800px; margin: 0 auto;">
-            <h1 style="font-size: 3em; margin-bottom: 20px; font-weight: 700;">Faz a Diferença Hoje</h1>
-            <p style="font-size: 1.3em; margin-bottom: 40px; opacity: 0.95;">
-                Apoiam-se campanhas incríveis. Juntos, podemos ajudar quem mais precisa.
-            </p>
-            
-            <!-- SELETOR DE CATEGORIAS -->
-            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 400px; margin: 0 auto;">
-                <form action="campanhas.php" method="GET" style="display: flex; gap: 10px; align-items: center;">
-                    <select name="categoria" style="flex: 1; padding: 12px; border: none; border-radius: 4px; font-size: 1em; background: white; cursor: pointer;">
-                        <option value="">📂 Todas as Categorias</option>
-                        <option value="Saude">🏥 Saúde</option>
-                        <option value="Educacao">📚 Educação</option>
-                        <option value="Ambiente">🌍 Ambiente</option>
-                        <option value="Social">🤝 Social</option>
-                        <option value="Emergencia">🚨 Emergência</option>
-                        <option value="Animais">🐾 Animais</option>
-                        <option value="Cultura">🎨 Cultura</option>
-                        <option value="Outro">✨ Outro</option>
-                    </select>
-                    <button type="submit" style="background: #ff6f00; color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 1em; white-space: nowrap;">Filtrar</button>
-                </form>
-            </div>
+    <div class="hero-stats">
+        <div class="stat-item">
+            <span class="stat-num">€<?php echo number_format($stats['total_angariado'], 0, ',', '.'); ?></span>
+            <span class="stat-label">Total angariado</span>
         </div>
-    </section>
-
-    <!-- SECÇÃO DE CATEGORIAS -->
-    <section style="background: white; padding: 50px 20px; border-bottom: 1px solid #eee;">
-        <div class="w3-container" style="max-width: 1200px; margin: 0 auto;">
-            <p style="text-align: center; color: #666; margin-bottom: 30px; font-size: 0.95em;">CATEGORIAS POPULARES</p>
-            <div class="w3-row-padding" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                <a href="campanhas.php?categoria=Saude" style="padding: 20px; text-align: center; text-decoration: none; color: #333; border: 2px solid #eee; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;"
-                   onmouseover="this.style.borderColor='#ff6f00'; this.style.background='#fff3e0';" 
-                   onmouseout="this.style.borderColor='#eee'; this.style.background='white';">
-                    <span style="font-size: 1.8em;">🏥</span>
-                    <strong>Saúde</strong>
-                </a>
-                <a href="campanhas.php?categoria=Educacao" style="padding: 20px; text-align: center; text-decoration: none; color: #333; border: 2px solid #eee; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;"
-                   onmouseover="this.style.borderColor='#ff6f00'; this.style.background='#fff3e0';" 
-                   onmouseout="this.style.borderColor='#eee'; this.style.background='white';">
-                    <span style="font-size: 1.8em;">📚</span>
-                    <strong>Educação</strong>
-                </a>
-                <a href="campanhas.php?categoria=Ambiente" style="padding: 20px; text-align: center; text-decoration: none; color: #333; border: 2px solid #eee; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;"
-                   onmouseover="this.style.borderColor='#ff6f00'; this.style.background='#fff3e0';" 
-                   onmouseout="this.style.borderColor='#eee'; this.style.background='white';">
-                    <span style="font-size: 1.8em;">🌍</span>
-                    <strong>Ambiente</strong>
-                </a>
-                <a href="campanhas.php?categoria=Social" style="padding: 20px; text-align: center; text-decoration: none; color: #333; border: 2px solid #eee; border-radius: 8px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;"
-                   onmouseover="this.style.borderColor='#ff6f00'; this.style.background='#fff3e0';" 
-                   onmouseout="this.style.borderColor='#eee'; this.style.background='white';">
-                    <span style="font-size: 1.8em;">🤝</span>
-                    <strong>Social</strong>
-                </a>
-            </div>
+        <div class="stat-item">
+            <span class="stat-num"><?php echo number_format($stats['total_campanhas']); ?></span>
+            <span class="stat-label">Campanhas ativas</span>
         </div>
-    </section>
+        <div class="stat-item">
+            <span class="stat-num"><?php echo number_format($total_users); ?></span>
+            <span class="stat-label">Utilizadores</span>
+        </div>
+    </div>
+</section>
 
-    <!-- CAMPANHAS DESTACADAS -->
-    <section style="background: #f9f9f9; padding: 60px 20px;">
-        <div class="w3-container" style="max-width: 1200px; margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 50px;">
-                <p style="color: #ff6f00; font-weight: 600; font-size: 0.9em; margin: 0 0 10px 0;">CAMPANHAS EM DESTAQUE</p>
-                <h2 style="color: #333; font-size: 2.2em; margin: 0; font-weight: 700;">Campanhas que precisam da tua ajuda</h2>
-            </div>
+<!-- COMO FUNCIONA -->
+<section class="como-funciona">
+    <div class="section-header">
+        <span class="section-tag">Como funciona</span>
+        <h2>Três passos para fazer a diferença</h2>
+        <p>Começa em minutos. Sem complicações.</p>
+    </div>
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-num">1</div>
+            <h3>Cria a tua campanha</h3>
+            <p>Regista-te e descreve a tua causa. Adiciona imagem, objetivo e história — em menos de 5 minutos.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">2</div>
+            <h3>Partilha com todos</h3>
+            <p>Divulga nas redes sociais, por email ou mensagem. Quanto mais partilhares, mais apoio recebes.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">3</div>
+            <h3>Recebe os donativos</h3>
+            <p>Acompanha o progresso em tempo real e recebe as doações diretamente na tua conta.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-num">4</div>
+            <h3>Faz a diferença</h3>
+            <p>Usa os fundos para o que prometeste. A transparência é o nosso valor mais importante.</p>
+        </div>
+    </div>
+</section>
 
-            <?php if(count($campanhas) > 0): ?>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;">
-                <?php foreach($campanhas as $campanha): ?>
-                    <?php $percent = $campanha['valor_objetivo'] > 0 ? ($campanha['valor_angariado'] / $campanha['valor_objetivo'] * 100) : 0; ?>
-                    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.3s, box-shadow 0.3s;"
-                         onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.12)';"
-                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)';">
-                        
-                        <!-- Imagem com badge de progresso -->
-                        <div style="position: relative; overflow: hidden; height: 200px;">
-                            <?php if(!empty($campanha['imagem'])): ?>
-                                <img src="<?php echo $campanha['imagem']; ?>" alt="<?php echo $campanha['titulo']; ?>" style="width: 100%; height: 100%; object-fit: cover;">
-                            <?php else: ?>
-                                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #ff6f00 0%, #ff8a38 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3em;">📢</div>
-                            <?php endif; ?>
-                            <div style="position: absolute; top: 10px; right: 10px; background: rgba(255,111,0, 0.95); color: white; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85em;">
-                                <?php echo round($percent); ?>%
-                            </div>
-                        </div>
+<!-- CAMPANHAS EM DESTAQUE -->
+<?php if (!empty($campanhas_destaque)): ?>
+<section class="campanhas-section">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:8px;">
+        <div>
+            <span class="section-tag">Campanhas</span>
+            <h2 style="margin-top:4px;">Em destaque agora</h2>
+        </div>
+        <a href="campanhas.php" class="btn btn-outline btn-sm">Ver todas <i class="fa fa-arrow-right"></i></a>
+    </div>
 
-                        <div style="padding: 20px;">
-                            <!-- Categoria -->
-                            <span style="display: inline-block; background: #fff3e0; color: #ff6f00; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: 600; margin-bottom: 10px;">
-                                <?php echo $campanha['categoria']; ?>
-                            </span>
-
-                            <!-- Título -->
-                            <h3 style="color: #333; font-size: 1.15em; margin: 12px 0; line-height: 1.4; font-weight: 600;">
-                                <?php echo htmlspecialchars($campanha['titulo']); ?>
-                            </h3>
-
-                            <!-- Descrição -->
-                            <p style="color: #666; font-size: 0.9em; margin-bottom: 15px; line-height: 1.5;">
-                                <?php echo htmlspecialchars(substr($campanha['descricao'], 0, 80)); ?>...
-                            </p>
-
-                            <!-- Barra de Progresso -->
-                            <div style="background: #eee; height: 8px; border-radius: 4px; margin-bottom: 12px; overflow: hidden;">
-                                <div style="background: #ff6f00; height: 100%; border-radius: 4px; width: <?php echo $percent; ?>%;"></div>
-                            </div>
-
-                            <!-- Valores -->
-                            <div style="margin-bottom: 15px;">
-                                <p style="color: #333; font-weight: 700; font-size: 1.1em; margin: 0;">
-                                    €<?php echo number_format($campanha['valor_angariado'], 2, ',', '.'); ?>
-                                </p>
-                                <p style="color: #999; font-size: 0.85em; margin: 4px 0 0 0;">
-                                    de €<?php echo number_format($campanha['valor_objetivo'], 2, ',', '.'); ?>
-                                </p>
-                            </div>
-
-                            <!-- Botão -->
-                            <a href="campanha.php?id=<?php echo $campanha['id']; ?>" style="display: block; text-align: center; background: #ff6f00; color: white; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.3s;"
-                               onmouseover="this.style.background='#e55f00';"
-                               onmouseout="this.style.background='#ff6f00';">
-                                Ver Campanha
-                            </a>
-                        </div>
+    <div class="campanhas-grid">
+        <?php foreach ($campanhas_destaque as $c):
+            $perc = $c['valor_objetivo'] > 0 ? min(100, round(($c['valor_angariado'] / $c['valor_objetivo']) * 100)) : 0;
+            $icone = $categorias_icones[$c['categoria']] ?? 'fa-heart';
+        ?>
+        <div class="card-campanha">
+            <div class="card-img-wrap">
+                <?php if (!empty($c['imagem']) && file_exists('uploads/' . $c['imagem'])): ?>
+                    <img src="uploads/<?php echo htmlspecialchars($c['imagem']); ?>" alt="<?php echo htmlspecialchars($c['titulo']); ?>">
+                <?php else: ?>
+                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--verde),#00c875);">
+                        <i class="fa <?php echo $icone; ?>" style="font-size:3rem;color:rgba(255,255,255,0.5);"></i>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
+                <span class="card-categoria"><?php echo htmlspecialchars($c['categoria']); ?></span>
             </div>
+            <div class="card-body">
+                <h3><?php echo htmlspecialchars($c['titulo']); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(mb_substr($c['descricao'], 0, 120)) . '...'; ?></p>
 
-            <!-- Ver Todas as Campanhas -->
-            <div style="text-align: center; margin-top: 40px;">
-                <a href="campanhas.php" style="display: inline-block; background: white; color: #ff6f00; padding: 14px 40px; border: 2px solid #ff6f00; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;"
-                   onmouseover="this.style.background='#ff6f00'; this.style.color='white';"
-                   onmouseout="this.style.background='white'; this.style.color='#ff6f00';">
-                    Ver Todas as Campanhas →
-                </a>
+                <div class="progress-wrap">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width:<?php echo $perc; ?>%;"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span class="progress-valor">€<?php echo number_format($c['valor_angariado'], 0, ',', '.'); ?></span>
+                        <span class="progress-perc"><?php echo $perc; ?>% de €<?php echo number_format($c['valor_objetivo'], 0, ',', '.'); ?></span>
+                    </div>
+                </div>
+
+                <div class="card-footer-info">
+                    <span class="card-instituicao"><i class="fa fa-building" style="margin-right:5px;"></i><?php echo htmlspecialchars($c['instituicao']); ?></span>
+                    <a href="campanha.php?id=<?php echo $c['id']; ?>" class="btn btn-primary btn-sm">Apoiar</a>
+                </div>
             </div>
-
-            <?php else: ?>
-            <p style="text-align: center; color: #999; padding: 40px;">Ainda não existem campanhas disponíveis. Sê o primeiro a criar uma!</p>
-            <?php endif; ?>
         </div>
-    </section>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
 
-    <!-- SECÇÃO DE CTA - CRIAR CAMPANHA -->
-    <section style="background: linear-gradient(135deg, #ff6f00 0%, #ff8a38 100%); color: white; padding: 60px 20px; text-align: center;">
-        <div class="w3-container" style="max-width: 800px; margin: 0 auto;">
-            <?php if(!isset($_SESSION['id_utilizador'])): ?>
-                <h2 style="font-size: 2.2em; margin-bottom: 15px; font-weight: 700;">Tens uma Causa para Apoiar?</h2>
-                <p style="font-size: 1.1em; margin-bottom: 30px; opacity: 0.95;">
-                    Cria uma campanha em poucos minutos e conecta-te com pessoas dispostas a ajudar.
-                </p>
-                <a href="registo.php" style="display: inline-block; background: white; color: #ff6f00; padding: 15px 45px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 1.05em; transition: all 0.3s;"
-                   onmouseover="this.style.transform='scale(1.05)';"
-                   onmouseout="this.style.transform='scale(1)';">
-                    Começar Agora
-                </a>
-            <?php elseif($_SESSION['tipo_utilizador'] === 'instituicao'): ?>
-                <h2 style="font-size: 2.2em; margin-bottom: 15px; font-weight: 700;">Tens uma Causa para Apoiar?</h2>
-                <p style="font-size: 1.1em; margin-bottom: 30px; opacity: 0.95;">
-                    Cria uma campanha em poucos minutos e conecta-te com pessoas dispostas a ajudar.
-                </p>
-                <a href="criar-campanha.php" style="display: inline-block; background: white; color: #ff6f00; padding: 15px 45px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 1.05em; transition: all 0.3s;"
-                   onmouseover="this.style.transform='scale(1.05)';"
-                   onmouseout="this.style.transform='scale(1)';">
-                    Criar Campanha
-                </a>
-            <?php endif; ?>
+<!-- CATEGORIAS -->
+<section style="background:var(--branco); padding:80px 24px;">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Categorias</span>
+            <h2>Encontra a causa que te move</h2>
         </div>
-    </section>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:16px; max-width:900px; margin:0 auto;">
+            <?php foreach ($categorias_icones as $cat => $icone): ?>
+            <a href="campanhas.php?categoria=<?php echo urlencode($cat); ?>" 
+               style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px 16px;background:var(--cinza-bg);border-radius:var(--radius-md);border:1.5px solid var(--cinza-borda);transition:var(--transition);text-align:center;"
+               onmouseover="this.style.borderColor='var(--verde)';this.style.background='var(--verde-claro)'"
+               onmouseout="this.style.borderColor='var(--cinza-borda)';this.style.background='var(--cinza-bg)'">
+                <i class="fa <?php echo $icone; ?>" style="font-size:1.8rem;color:var(--verde);"></i>
+                <span style="font-weight:600;font-size:0.88rem;"><?php echo htmlspecialchars($cat); ?></span>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
 
-</main>
+<!-- CTA FINAL -->
+<section style="padding:80px 24px; text-align:center; background:linear-gradient(135deg, #f0fdf6, #fefaf5);">
+    <div class="container">
+        <h2 style="margin-bottom:16px;">Tens uma causa para partilhar?</h2>
+        <p style="color:var(--cinza-texto); max-width:520px; margin:0 auto 32px; font-size:1.05rem;">
+            Lança a tua campanha hoje. É gratuito, rápido e podes começar a receber doações em minutos.
+        </p>
+        <a href="<?php echo isset($_SESSION['user_id']) ? 'criar-campanha.php' : 'registo.php'; ?>" class="btn btn-primary btn-lg">
+            <i class="fa fa-rocket"></i> Começar agora
+        </a>
+    </div>
+</section>
 
 <?php include 'includes/footer.php'; ?>

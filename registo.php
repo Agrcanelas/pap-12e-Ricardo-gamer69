@@ -1,226 +1,131 @@
 <?php
-/**
- * DOA+ - Registo
- * Página de registo de novos utilizadores
- */
+require_once 'config.php';
+$pageTitle = 'Criar Conta';
 
-require 'config.php';
+if (isset($_SESSION['user_id'])) {
+    header("Location: index.php"); exit;
+}
 
-$pageTitle = "Registar";
-$baseUrl = '';
-$formulario_enviado = false;
-$erro_registo = '';
+$erro = '';
+$nome_val = $email_val = '';
 
-// Processar envio do formulário e gravar na base de dados
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
-    $nome = $_POST['nome'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $senha_raw = $_POST['senha'] ?? '';
-    $confirmar_senha = $_POST['confirmar_senha'] ?? '';
-    $tipo = $_POST['tipo_utilizador'] ?? '';
+    $nome        = trim($_POST['nome'] ?? '');
+    $email       = trim($_POST['email'] ?? '');
+    $senha       = $_POST['senha'] ?? '';
+    $conf_senha  = $_POST['conf_senha'] ?? '';
+    $tipo        = $_POST['tipo_utilizador'] ?? 'doador';
+    $nome_val    = $nome;
+    $email_val   = $email;
 
-    // Validações básicas
-    if (empty($nome) || empty($email) || empty($senha_raw) || empty($tipo)) {
-        $erro_registo = 'Todos os campos são obrigatórios.';
-    } elseif ($senha_raw !== $confirmar_senha) {
-        $erro_registo = 'As senhas não correspondem.';
-    } elseif (strlen($senha_raw) < 8) {
-        $erro_registo = 'A senha deve ter no mínimo 8 caracteres.';
+    if (empty($nome) || empty($email) || empty($senha) || empty($conf_senha)) {
+        $erro = 'Por favor preenche todos os campos.';
+    } elseif (strlen($senha) < 8) {
+        $erro = 'A palavra-passe deve ter pelo menos 8 caracteres.';
+    } elseif ($senha !== $conf_senha) {
+        $erro = 'As palavras-passe não coincidem.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $erro = 'Endereço de email inválido.';
     } else {
         try {
-            // Verificar se o email já existe
             $stmt = $pdo->prepare("SELECT id FROM utilizadores WHERE email = :email");
             $stmt->execute(['email' => $email]);
-            
             if ($stmt->fetch()) {
-                $erro_registo = 'Este email já está registado.';
+                $erro = 'Este email já está registado.';
             } else {
-                // Encriptar senha
-                $senha = password_hash($senha_raw, PASSWORD_DEFAULT);
-                
-                // Inserir novo utilizador
+                $hash = password_hash($senha, PASSWORD_DEFAULT);
+                $tipo_limpo = in_array($tipo, ['doador', 'instituicao']) ? $tipo : 'doador';
                 $stmt = $pdo->prepare("INSERT INTO utilizadores (nome, email, senha, tipo_utilizador) VALUES (:nome, :email, :senha, :tipo)");
-                $stmt->execute([
-                    'nome' => $nome,
-                    'email' => $email,
-                    'senha' => $senha,
-                    'tipo' => $tipo
-                ]);
-                $formulario_enviado = true;
+                $stmt->execute(['nome' => $nome, 'email' => $email, 'senha' => $hash, 'tipo' => $tipo_limpo]);
+                header("Location: login.php?registo=sucesso"); exit;
             }
         } catch (PDOException $e) {
-            $erro_registo = 'Erro ao registar a conta. Tenta novamente.';
+            $erro = 'Erro ao criar conta. Tenta novamente.';
         }
     }
 }
 ?>
-
 <?php include 'includes/header.php'; ?>
 
-<!-- Conteúdo principal -->
-<main class="w3-container" style="margin-top: 100px; padding: 60px 20px;">
-    
-    <div class="w3-row">
-        <!-- Coluna Esquerda - Info -->
-        <div class="w3-col m6 w3-padding-32">
-            <h2 style="color: #ff6f00; font-size: 2em; margin-top: 0;">
-                Junta-te ao DOA+
-            </h2>
-            
-            <p style="font-size: 1.1em; color: #666; line-height: 1.8; margin: 20px 0;">
-                Regista-te agora e começa a fazer a diferença apoiando as causas que te importam.
-            </p>
-
-            <!-- Passos para Registo -->
-            <div style="margin-top: 40px;">
-                <h4 style="color: #ff6f00;">Como Funciona?</h4>
-                
-                <div class="step" style="text-align: left; padding: 0; margin-bottom: 25px;">
-                    <div class="step-number" style="margin-bottom: 10px;">1</div>
-                    <h5 style="margin: 0 0 5px 0;">Preenche o Formulário</h5>
-                    <p style="color: #666; font-size: 0.9em; margin: 0;">
-                        Informações básicas como nome, email e senha.
-                    </p>
-                </div>
-
-                <div class="step" style="text-align: left; padding: 0; margin-bottom: 25px;">
-                    <div class="step-number" style="margin-bottom: 10px;">2</div>
-                    <h5 style="margin: 0 0 5px 0;">Completa o Teu Perfil</h5>
-                    <p style="color: #666; font-size: 0.9em; margin: 0;">
-                        Adiciona informações pessoais e escolhe as tuas preferências.
-                    </p>
-                </div>
-
-                <div class="step" style="text-align: left; padding: 0;">
-                    <div class="step-number" style="margin-bottom: 10px;">3</div>
-                    <h5 style="margin: 0 0 5px 0;">Começa a Fazer a Diferença</h5>
-                    <p style="color: #666; font-size: 0.9em; margin: 0;">
-                        Explora campanhas e começa a apoiar as causas que importam.
-                    </p>
-                </div>
-            </div>
-
-            <hr style="margin: 40px 0;">
-
-            <p style="color: #999; font-size: 0.9em;">
-                Já tens conta? <a href="login.php" style="color: #ff6f00; font-weight: 600;">Entrar aqui</a>
-            </p>
+<div class="form-page">
+    <div class="form-box">
+        <div class="form-logo">
+            <div class="logo-text">DOA+</div>
+            <p>Cria a tua conta — é grátis! 🎉</p>
         </div>
 
-        <!-- Coluna Direita - Formulário -->
-        <div class="w3-col m6 w3-padding-32">
-            <div style="background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                
-                <h3 style="margin-top: 0; text-align: center; color: #ff6f00;">Criar Conta</h3>
+        <?php if ($erro): ?>
+            <div class="alert alert-erro"><i class="fa fa-circle-exclamation"></i> <?php echo htmlspecialchars($erro); ?></div>
+        <?php endif; ?>
 
-                <?php if ($formulario_enviado): ?>
-                <div class="alert alert-success">
-                    <strong>Sucesso!</strong> A tua conta foi criada com sucesso. Podes fazer <a href="login.php" style="color: #0066cc; font-weight: 600;">login aqui</a>.
-                </div>
-                <?php endif; ?>
-
-                <?php if (!empty($erro_registo)): ?>
-                <div class="alert alert-error" style="background-color: #fee; border: 1px solid #fcc; color: #c33; padding: 12px; border-radius: 4px; margin-bottom: 20px;">
-                    <strong>Erro:</strong> <?php echo htmlspecialchars($erro_registo); ?>
-                </div>
-                <?php endif; ?>
-
-                <form method="POST" action="">
-                    <!-- Nome Completo -->
-                    <div class="form-group">
-                        <label for="nome">Nome Completo *</label>
-                        <input type="text" id="nome" name="nome" placeholder="Ex: João Silva" required>
-                    </div>
-
-                    <!-- Email -->
-                    <div class="form-group">
-                        <label for="email">Email *</label>
-                        <input type="email" id="email" name="email" placeholder="utilizador@exemplo.com" required>
-                    </div>
-
-                    <!-- Tipo de Utilizador -->
-                    <div class="form-group">
-                        <label for="tipo_utilizador">Tipo de Utilizador *</label>
-                        <select id="tipo_utilizador" name="tipo_utilizador" required>
-                            <option value="">Seleciona o tipo...</option>
-                            <option value="doador">Doador Individual</option>
-                            <option value="instituicao">Instituição/Organização</option>
-                        </select>
-                    </div>
-
-                    <!-- Senha -->
-                    <div class="form-group">
-                        <label for="senha">Senha *</label>
-                        <input type="password" id="senha" name="senha" placeholder="Mínimo 8 caracteres" minlength="8" required>
-                    </div>
-
-                    <!-- Confirmar Senha -->
-                    <div class="form-group">
-                        <label for="confirmar_senha">Confirmar Senha *</label>
-                        <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Repete a tua senha" minlength="8" required <?php echo (!empty($erro_registo) && strpos($erro_registo, 'não correspondem') !== false) ? 'style="border-color: red;"' : ''; ?>>
-                    </div>
-
-                    <!-- Termos e Privacidade -->
-                    <div style="margin-bottom: 20px;">
-                        <input type="checkbox" id="termos" name="termos" required>
-                        <label for="termos" style="display: inline; margin-left: 8px; font-size: 0.9em;">
-                            Concordo com os <a href="termos-condicoes.php" style="color: #ff6f00;" target="_blank">Termos e Condições</a> *
-                        </label>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <input type="checkbox" id="privacidade" name="privacidade" required>
-                        <label for="privacidade" style="display: inline; margin-left: 8px; font-size: 0.9em;">
-                            Li e aceito a <a href="politica-privacidade.php" style="color: #ff6f00;" target="_blank">Política de Privacidade</a> *
-                        </label>
-                    </div>
-
-                    <!-- Botão de Registo -->
-                    <button type="submit" class="btn btn-primary btn-block">Criar Conta</button>
-                </form>
-
-                <script>
-                    // Mensagens de validação em português
-                    const mensagens = {
-                        'nome': 'Por favor, preenche o Nome Completo',
-                        'email': 'Por favor, preenche um Email válido',
-                        'tipo_utilizador': 'Por favor, seleciona um Tipo de Utilizador',
-                        'senha': 'Por favor, preenche a Senha (mínimo 8 caracteres)',
-                        'confirmar_senha': 'Por favor, confirma a Senha',
-                        'termos': 'Por favor, aceita os Termos e Condições',
-                        'privacidade': 'Por favor, aceita a Política de Privacidade'
-                    };
-
-                    // Aplicar hook ao evento invalid
-                    Object.keys(mensagens).forEach(id => {
-                        const campo = document.getElementById(id);
-                        if (campo) {
-                            campo.addEventListener('invalid', function(e) {
-                                this.setCustomValidity(mensagens[id]);
-                            }, false);
-
-                            // Limpar mensagem quando o utilizador interage
-                            campo.addEventListener('input', function() {
-                                this.setCustomValidity('');
-                            });
-
-                            campo.addEventListener('change', function() {
-                                this.setCustomValidity('');
-                            });
-                        }
-                    });
-                </script>
-
-                <hr style="margin: 30px 0;">
-
-                <p style="text-align: center; color: #999; font-size: 0.85em; margin: 0;">
-                    Já tens conta? <a href="login.php" style="color: #ff6f00; font-weight: 600;">Entra aqui</a>
-                </p>
+        <form method="POST" novalidate>
+            <div class="form-group">
+                <label class="form-label">Nome completo</label>
+                <input type="text" name="nome" class="form-input" placeholder="O teu nome" required
+                       value="<?php echo htmlspecialchars($nome_val); ?>" autofocus>
             </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-input" placeholder="o.teu@email.pt" required
+                       value="<?php echo htmlspecialchars($email_val); ?>">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Tipo de conta</label>
+                <select name="tipo_utilizador" class="form-input">
+                    <option value="doador">Doador — quero apoiar causas</option>
+                    <option value="instituicao">Instituição — quero criar campanhas</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Palavra-passe</label>
+                    <div class="form-input-icon">
+                        <input type="password" name="senha" id="senha" class="form-input" placeholder="Mín. 8 caracteres" required minlength="8">
+                        <button type="button" class="input-icon-btn" onclick="togglePass('senha', this)" tabindex="-1">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirmar</label>
+                    <div class="form-input-icon">
+                        <input type="password" name="conf_senha" id="conf_senha" class="form-input" placeholder="Repetir senha" required>
+                        <button type="button" class="input-icon-btn" onclick="togglePass('conf_senha', this)" tabindex="-1">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <p style="font-size:0.78rem;color:var(--cinza-texto);margin-bottom:16px;">
+                Ao criares conta, aceitas os nossos 
+                <a href="termos-condicoes.php" class="form-link">Termos e Condições</a> e a 
+                <a href="politica-privacidade.php" class="form-link">Política de Privacidade</a>.
+            </p>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                Criar conta grátis
+            </button>
+        </form>
+
+        <div class="text-center" style="margin-top:24px;">
+            <p style="color:var(--cinza-texto);font-size:0.9rem;">
+                Já tens conta? <a href="login.php" class="form-link">Entra aqui</a>
+            </p>
         </div>
     </div>
+</div>
 
-</main>
+<script>
+function togglePass(id, btn) {
+    const input = document.getElementById(id);
+    const isPass = input.type === 'password';
+    input.type = isPass ? 'text' : 'password';
+    btn.innerHTML = `<i class="fa ${isPass ? 'fa-eye-slash' : 'fa-eye'}"></i>`;
+}
+</script>
 
 <?php include 'includes/footer.php'; ?>

@@ -3,7 +3,7 @@
  * DOA+ - Termos e Condições
  */
 
-require 'config.php';
+require_once 'config.php';
 
 $pageTitle = "Termos e Condições";
 $baseUrl = '';
