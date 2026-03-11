@@ -87,7 +87,7 @@ $tab_ativa = $_GET['tab'] ?? 'conta';
             <h3><?php echo htmlspecialchars($user['nome']); ?></h3>
             <p><?php echo htmlspecialchars($user['email']); ?></p>
             <span class="badge badge-<?php echo $user['tipo_utilizador']; ?>" style="margin-top:8px;">
-                <?php echo ucfirst($user['tipo_utilizador']); ?>
+                <?php echo $user['tipo_utilizador'] === 'admin' ? '⚙️ Admin' : '👤 Utilizador'; ?>
             </span>
         </div>
         <nav class="perfil-nav">

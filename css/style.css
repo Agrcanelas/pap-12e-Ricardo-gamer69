@@ -1014,9 +1014,8 @@ textarea.form-input { resize: vertical; min-height: 120px; }
 .badge-pendente { background: #fffbeb; color: #b45309; }
 .badge-concluida { background: #eff6ff; color: #1d4ed8; }
 .badge-cancelada { background: #fef2f2; color: #b91c1c; }
+.badge-utilizador { background: var(--verde-claro); color: var(--verde-escuro); }
 .badge-admin { background: #faf5ff; color: #7c3aed; }
-.badge-doador { background: var(--verde-claro); color: var(--verde-escuro); }
-.badge-instituicao { background: #fff5f0; color: #c2410c; }
 
 /* =========================================
    14. FOOTER

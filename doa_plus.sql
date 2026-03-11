@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS utilizadores (
     nome             VARCHAR(100) NOT NULL,
     email            VARCHAR(120) UNIQUE NOT NULL,
     senha            VARCHAR(255) NOT NULL,
-    tipo_utilizador  ENUM('doador','instituicao','admin') DEFAULT 'doador',
+    tipo_utilizador  ENUM('utilizador','admin') DEFAULT 'utilizador',
     data_registo     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ativo            BOOLEAN DEFAULT TRUE
 );
@@ -90,10 +90,10 @@ INSERT IGNORE INTO utilizadores (nome, email, senha, tipo_utilizador) VALUES
 
 -- Utilizadores de exemplo
 INSERT IGNORE INTO utilizadores (id, nome, email, senha, tipo_utilizador) VALUES
-(2, 'Associação de Apoio Social', 'associacao@doaplus.pt', '$2y$10$3K0XpXqvXVyGu.v0eXKAiOd.BX0mDlH6PmOqW8u.EEWqZ2K4mqKy2', 'instituicao'),
-(3, 'Banco Alimentar Lisboa',     'bancoalimentar@doaplus.pt', '$2y$10$3K0XpXqvXVyGu.v0eXKAiOd.BX0mDlH6PmOqW8u.EEWqZ2K4mqKy2', 'instituicao'),
-(4, 'João Silva',   'joao@doaplus.pt',  '$2y$10$3K0XpXqvXVyGu.v0eXKAiOd.BX0mDlH6PmOqW8u.EEWqZ2K4mqKy2', 'doador'),
-(5, 'Maria Santos', 'maria@doaplus.pt', '$2y$10$3K0XpXqvXVyGu.v0eXKAiOd.BX0mDlH6PmOqW8u.EEWqZ2K4mqKy2', 'doador');
+(2, 'Associação de Apoio Social', 'associacao@doaplus.pt', '$2y$10$3K0XpXqvXVyGu.v0eXKAiOd.BX0mDlH6PmOqW8u.EEWqZ2K4mqKy2', 'utilizador'),
+(3, 'Banco Alimentar Lisboa',     'bancoalimentar@doaplus.pt', '$2y$10$3K0XpXqvXVyGu.v0eXKAiOd.BX0mDlH6PmOqW8u.EEWqZ2K4mqKy2', 'utilizador'),
+(4, 'João Silva',   'joao@doaplus.pt',  '$2y$10$3K0XpXqvXVyGu.v0eXKAiOd.BX0mDlH6PmOqW8u.EEWqZ2K4mqKy2', 'utilizador'),
+(5, 'Maria Santos', 'maria@doaplus.pt', '$2y$10$3K0XpXqvXVyGu.v0eXKAiOd.BX0mDlH6PmOqW8u.EEWqZ2K4mqKy2', 'utilizador');
 
 -- Campanhas de exemplo
 INSERT IGNORE INTO campanhas (id, titulo, descricao, categoria, valor_objetivo, valor_angariado, instituicao, id_criador, data_inicio, data_fim, status) VALUES

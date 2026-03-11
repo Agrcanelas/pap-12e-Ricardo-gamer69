@@ -41,8 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$erro) {
             try {
-                $status = (isset($_SESSION['tipo_utilizador']) && $_SESSION['tipo_utilizador'] === 'admin') ? 'ativa' : 'ativa';
-                $stmt = $pdo->prepare("INSERT INTO campanhas (titulo, descricao, categoria, valor_objetivo, instituicao, id_criador, data_inicio, data_fim, status, imagem) VALUES (:titulo, :descricao, :categoria, :objetivo, :instituicao, :criador, NOW(), :data_fim, :status, :imagem)");
+                $stmt = $pdo->prepare("INSERT INTO campanhas (titulo, descricao, categoria, valor_objetivo, instituicao, id_criador, data_inicio, data_fim, status, imagem) VALUES (:titulo, :descricao, :categoria, :objetivo, :instituicao, :criador, NOW(), :data_fim, 'ativa', :imagem)");
                 $stmt->execute([
                     'titulo'      => $titulo,
                     'descricao'   => $descricao,
@@ -51,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'instituicao' => $instituicao,
                     'criador'     => $_SESSION['user_id'],
                     'data_fim'    => $data_fim ?: null,
-                    'status'      => $status,
                     'imagem'      => $imagem,
                 ]);
                 $novo_id = $pdo->lastInsertId();

@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email       = trim($_POST['email'] ?? '');
     $senha       = $_POST['senha'] ?? '';
     $conf_senha  = $_POST['conf_senha'] ?? '';
-    $tipo        = $_POST['tipo_utilizador'] ?? 'doador';
+    $tipo        = 'utilizador';
     $nome_val    = $nome;
     $email_val   = $email;
 
@@ -28,19 +28,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erro = 'Endereço de email inválido.';
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT id FROM utilizadores WHERE email = :email");
-            $stmt->execute(['email' => $email]);
-            if ($stmt->fetch()) {
+            $stmt_check = $pdo->prepare("SELECT id FROM utilizadores WHERE email = :email");
+            $stmt_check->execute(['email' => $email]);
+            if ($stmt_check->fetch()) {
                 $erro = 'Este email já está registado.';
             } else {
                 $hash = password_hash($senha, PASSWORD_DEFAULT);
-                $tipo_limpo = in_array($tipo, ['doador', 'instituicao']) ? $tipo : 'doador';
-                $stmt = $pdo->prepare("INSERT INTO utilizadores (nome, email, senha, tipo_utilizador) VALUES (:nome, :email, :senha, :tipo)");
-                $stmt->execute(['nome' => $nome, 'email' => $email, 'senha' => $hash, 'tipo' => $tipo_limpo]);
+                $stmt_insert = $pdo->prepare("INSERT INTO utilizadores (nome, email, senha, tipo_utilizador) VALUES (:nome, :email, :senha, :tipo)");
+                $stmt_insert->execute(['nome' => $nome, 'email' => $email, 'senha' => $hash, 'tipo' => 'utilizador']);
                 header("Location: login.php?registo=sucesso"); exit;
             }
         } catch (PDOException $e) {
-            $erro = 'Erro ao criar conta. Tenta novamente.';
+            $erro = 'Erro: ' . $e->getMessage();
         }
     }
 }
@@ -69,14 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="form-label">Email</label>
                 <input type="email" name="email" class="form-input" placeholder="o.teu@email.pt" required
                        value="<?php echo htmlspecialchars($email_val); ?>">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Tipo de conta</label>
-                <select name="tipo_utilizador" class="form-input">
-                    <option value="doador">Doador — quero apoiar causas</option>
-                    <option value="instituicao">Instituição — quero criar campanhas</option>
-                </select>
             </div>
 
             <div class="form-row">
