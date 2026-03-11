@@ -71,9 +71,10 @@ $metodo_label = 'Cartão de Crédito/Débito (Simulação)';
         </div>
 
         <!-- Botão PDF -->
-        <button onclick="downloadComprovativo()" id="btn-pdf" class="btn-doacao" style="width:100%; margin-bottom:14px; background:var(--preto);">
+        <a href="comprovativo.php?campanha=<?php echo $campanha_id; ?>&valor=<?php echo $montante; ?>&auto=1"
+           target="_blank" id="btn-pdf" class="btn-doacao" style="width:100%; display:block; text-align:center; margin-bottom:14px; background:var(--preto); text-decoration:none; line-height:1; padding:16px;">
             <i class="fa fa-file-pdf"></i> Descarregar Comprovativo (PDF)
-        </button>
+        </a>
 
         <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
             <a href="campanha.php?id=<?php echo $campanha_id; ?>" class="btn btn-outline">
@@ -86,101 +87,6 @@ $metodo_label = 'Cartão de Crédito/Débito (Simulação)';
     </div>
 </div>
 
-<!-- ===== COMPROVATIVO (oculto — usado para gerar PDF) ===== -->
-<div id="comprovativo-pdf" style="display:none;">
-<table width="794" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; font-family:Arial,Helvetica,sans-serif; color:#1a1a1a;">
-<tr><td style="padding:50px 56px 0 56px;">
-
-    <!-- CABEÇALHO -->
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:3px solid #02a95c; padding-bottom:24px; margin-bottom:32px;">
-        <tr>
-            <td style="vertical-align:top;">
-                <div style="font-size:32px; font-weight:900; color:#02a95c; font-family:Georgia,serif; line-height:1;">DOA+</div>
-                <div style="font-size:11px; color:#aaa; margin-top:4px;">Plataforma Portuguesa de Donativos</div>
-            </td>
-            <td style="vertical-align:top; text-align:right;">
-                <div style="font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Comprovativo de Doação</div>
-                <div style="font-size:14px; font-weight:800; letter-spacing:2px; color:#1a1a1a;"><?php echo $ref; ?></div>
-                <div style="font-size:11px; color:#aaa; margin-top:4px;"><?php echo $data_hora; ?></div>
-            </td>
-        </tr>
-    </table>
-
-    <!-- VALOR DESTAQUE -->
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
-        <tr>
-            <td style="background:#f0fdf6; border:2px solid #d1fae5; padding:28px; text-align:center;">
-                <div style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:bold;">Valor Doado</div>
-                <div style="font-size:52px; font-weight:900; color:#02a95c; font-family:Georgia,serif; line-height:1.1;">€<?php echo number_format($montante, 2, ',', '.'); ?></div>
-                <div style="margin-top:14px; font-size:12px; font-weight:bold; color:#166534; background:#dcfce7; display:inline-block; padding:5px 16px;">&#10003; Pagamento confirmado</div>
-            </td>
-        </tr>
-    </table>
-
-    <!-- TÍTULO DETALHES -->
-    <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; font-weight:bold; color:#999; margin-bottom:12px;">Detalhes da Transação</div>
-
-    <!-- TABELA DE DETALHES -->
-    <table width="100%" cellpadding="12" cellspacing="0" border="0" style="font-size:13px; margin-bottom:32px; border-collapse:collapse;">
-        <?php
-        $rows = [
-            ['Doador',      $eh_anonimo ? 'Anónimo' : htmlspecialchars($user['nome'] ?? '—')],
-            ['Email',       $eh_anonimo ? '—' : htmlspecialchars($user['email'] ?? '—')],
-            ['Campanha',    htmlspecialchars($c['titulo'])],
-            ['Organização', htmlspecialchars($c['instituicao'])],
-            ['Categoria',   htmlspecialchars($c['categoria'])],
-            ['Método',      $metodo_label],
-            ['Data e hora', $data_hora],
-            ['Referência',  $ref],
-        ];
-        foreach ($rows as $i => [$label, $val]):
-            $bg = $i % 2 === 0 ? '#f9fafb' : '#ffffff';
-            $isRef = $label === 'Referência';
-        ?>
-        <tr style="background:<?php echo $bg; ?>;">
-            <td width="38%" style="padding:11px 16px; color:#777; border-bottom:1px solid #f0f0f0;"><?php echo $label; ?></td>
-            <td style="padding:11px 16px; font-weight:bold; color:<?php echo $isRef ? '#02a95c' : '#1a1a1a'; ?>; border-bottom:1px solid #f0f0f0; letter-spacing:<?php echo $isRef ? '1px' : '0'; ?>;"><?php echo $val; ?></td>
-        </tr>
-        <?php endforeach; ?>
-    </table>
-
-    <!-- PROGRESSO -->
-    <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; font-weight:bold; color:#999; margin-bottom:10px;">Progresso da Campanha</div>
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:8px;">
-        <tr>
-            <td style="font-size:12px; color:#555;">€<?php echo number_format($c['valor_angariado'], 0, ',', '.'); ?> angariados</td>
-            <td style="font-size:12px; font-weight:bold; color:#02a95c; text-align:right;"><?php echo $perc; ?>%</td>
-        </tr>
-    </table>
-    <!-- Barra de progresso (sem border-radius para compatibilidade) -->
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:6px; height:10px; background:#e5e7eb;">
-        <tr>
-            <td width="<?php echo $perc; ?>%" style="background:#02a95c; height:10px; font-size:1px;">&nbsp;</td>
-            <?php if ($perc < 100): ?>
-            <td style="height:10px; font-size:1px;">&nbsp;</td>
-            <?php endif; ?>
-        </tr>
-    </table>
-    <div style="font-size:11px; color:#aaa; text-align:right; margin-bottom:32px;">Objetivo: €<?php echo number_format($c['valor_objetivo'], 0, ',', '.'); ?></div>
-
-    <!-- RODAPÉ -->
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e5e7eb; padding-top:20px; margin-top:4px;">
-        <tr>
-            <td style="vertical-align:bottom; padding-top:20px;">
-                <div style="font-size:13px; font-weight:bold; color:#02a95c; margin-bottom:2px;">DOA+</div>
-                <div style="font-size:11px; color:#bbb;">suporte@doaplus.pt</div>
-                <div style="font-size:11px; color:#bbb;">www.doaplus.pt</div>
-            </td>
-            <td style="vertical-align:bottom; text-align:right; padding-top:20px;">
-                <div style="font-size:11px; color:#bbb; font-style:italic; max-width:280px; margin-left:auto;">Este documento é o comprovativo oficial da tua doação através da plataforma DOA+.</div>
-            </td>
-        </tr>
-    </table>
-
-</td></tr>
-<tr><td style="padding:32px 56px;">&nbsp;</td></tr>
-</table>
-</div>
 
 <style>
 @keyframes pulseCheck {
@@ -188,47 +94,5 @@ $metodo_label = 'Cartão de Crédito/Débito (Simulação)';
     50%       { transform:scale(1.07); box-shadow:0 0 0 16px rgba(2,169,92,0); }
 }
 </style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-function downloadComprovativo() {
-    const btn = document.getElementById('btn-pdf');
-    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> A gerar PDF...';
-    btn.disabled = true;
-
-    const el = document.getElementById('comprovativo-pdf');
-
-    // Tornar visível e posicionado normalmente para o html2canvas conseguir capturar
-    el.style.display    = 'block';
-    el.style.position   = 'static';
-    el.style.visibility = 'visible';
-    el.style.opacity    = '1';
-
-    // Pequeno delay para o browser renderizar antes de capturar
-    setTimeout(() => {
-        html2pdf().set({
-            margin:      10,
-            filename:    'comprovativo-<?php echo $ref; ?>.pdf',
-            image:       { type: 'jpeg', quality: 0.98 },
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                allowTaint: true
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).from(el).save().then(() => {
-            el.style.display = 'none';
-            btn.innerHTML = '<i class="fa fa-file-pdf"></i> Descarregar Comprovativo (PDF)';
-            btn.disabled = false;
-        }).catch(() => {
-            el.style.display = 'none';
-            btn.innerHTML = '<i class="fa fa-file-pdf"></i> Descarregar Comprovativo (PDF)';
-            btn.disabled = false;
-        });
-    }, 100);
-}
-</script>
 
 <?php include 'includes/footer.php'; ?>

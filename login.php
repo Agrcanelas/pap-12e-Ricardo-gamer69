@@ -46,6 +46,12 @@ if (isset($_SESSION['user_id'])) {
             <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px;">
                 Entrar na minha conta
             </button>
+
+            <div style="text-align:right; margin-top:10px;">
+                <a href="recuperar-senha.php" style="font-size:0.85rem; color:var(--cinza-texto); text-decoration:none;" onmouseover="this.style.color='var(--verde)'" onmouseout="this.style.color='var(--cinza-texto)'">
+                    <i class="fa fa-key" style="margin-right:4px;"></i> Esqueci-me da palavra-passe
+                </a>
+            </div>
         </form>
 
         <div class="form-divider" style="margin-top:24px;">ou</div>

@@ -449,6 +449,15 @@ $icone = $categorias_icones[$c['categoria']] ?? 'fa-heart';
                     </div>
                 </div>
 
+                <!-- Guardar cartão -->
+                <label id="label-guardar" style="display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border:2px solid var(--cinza-borda); border-radius:10px; cursor:pointer; margin-bottom:4px; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--verde)'" onmouseout="this.style.borderColor='var(--cinza-borda)'">
+                    <input type="checkbox" id="guardar-cartao" style="accent-color:var(--verde); width:16px; height:16px; margin-top:2px; flex-shrink:0;">
+                    <div>
+                        <div style="font-weight:600; font-size:0.88rem;">Guardar dados do cartão</div>
+                        <div style="font-size:0.76rem; color:var(--cinza-texto); margin-top:2px;">Os dados são guardados localmente no teu dispositivo para futuras doações. <span style="color:#f59e0b; font-weight:600;">⚠ Simulação — nenhum dado real é processado.</span></div>
+                    </div>
+                </label>
+
                 <div id="erro-pagamento" style="display:none; margin:14px 0;" class="alert alert-erro">
                     <i class="fa fa-circle-exclamation"></i> <span id="erro-pagamento-msg">Preenche todos os campos.</span>
                 </div>
@@ -572,6 +581,20 @@ function irPasso3() {
 
 let metodoPagamento = 'cartao';
 
+// Carregar dados guardados do cartão
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('doaplusCartao');
+    if (saved) {
+        try {
+            const d = JSON.parse(saved);
+            if (d.nome)     document.getElementById('cartao-nome').value     = d.nome;
+            if (d.numero)   { document.getElementById('cartao-numero').value = d.numero; formatarCartao(document.getElementById('cartao-numero')); }
+            if (d.validade) document.getElementById('cartao-validade').value = d.validade;
+            if (document.getElementById('guardar-cartao')) document.getElementById('guardar-cartao').checked = true;
+        } catch(e) {}
+    }
+});
+
 function formatarCartao(input) {
     const digits = input.value.replace(/\D/g, '').substring(0, 16);
     input.value = digits.replace(/(.{4})(?=.)/g, '$1 ');
@@ -628,6 +651,18 @@ function confirmarDoacao() {
     if (numero.length < 16)                             { mostrarErroPagamento('Número de cartão inválido — precisas de 16 dígitos.'); return; }
     if (!/^\d{2}\/\d{2}$/.test(validade))               { mostrarErroPagamento('Validade inválida — usa o formato MM/AA.'); return; }
     if (cvv.length < 3)                                 { mostrarErroPagamento('CVV inválido — 3 ou 4 dígitos.'); return; }
+
+    // Guardar ou limpar dados do cartão
+    if (document.getElementById('guardar-cartao')?.checked) {
+        localStorage.setItem('doaplusCartao', JSON.stringify({
+            nome:     nome,
+            numero:   document.getElementById('cartao-numero').value,
+            validade: validade
+            // CVV nunca é guardado por segurança
+        }));
+    } else {
+        localStorage.removeItem('doaplusCartao');
+    }
 
     // Animação de loading no botão
     const btn = document.getElementById('btn-confirmar');

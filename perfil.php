@@ -145,11 +145,21 @@ $tab_ativa = $_GET['tab'] ?? 'conta';
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Palavra-passe atual</label>
-                            <input type="password" name="senha_atual" class="form-input" placeholder="••••••••">
+                            <div class="form-input-icon">
+                                <input type="password" name="senha_atual" id="senha_atual" class="form-input" placeholder="••••••••">
+                                <button type="button" class="input-icon-btn" onclick="togglePass('senha_atual', this)" tabindex="-1">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Nova palavra-passe</label>
-                            <input type="password" name="nova_senha" class="form-input" placeholder="Mín. 8 caracteres" minlength="8">
+                            <div class="form-input-icon">
+                                <input type="password" name="nova_senha" id="nova_senha" class="form-input" placeholder="Mín. 8 caracteres" minlength="8">
+                                <button type="button" class="input-icon-btn" onclick="togglePass('nova_senha', this)" tabindex="-1">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,4 +240,12 @@ $tab_ativa = $_GET['tab'] ?? 'conta';
     </main>
 </div>
 
+<script>
+function togglePass(id, btn) {
+    const input = document.getElementById(id);
+    const isPass = input.type === 'password';
+    input.type = isPass ? 'text' : 'password';
+    btn.innerHTML = '<i class="fa ' + (isPass ? 'fa-eye-slash' : 'fa-eye') + '"></i>';
+}
+</script>
 <?php include 'includes/footer.php'; ?>
