@@ -1075,11 +1075,12 @@ textarea.form-input { resize: vertical; min-height: 120px; }
     display: flex; align-items: center; justify-content: center;
     color: var(--cinza-texto);
     font-size: 0.9rem;
-    transition: var(--transition);
     border: 1.5px solid var(--cinza-borda);
+    cursor: default;
+    user-select: none;
 }
 
-.social-btn:hover { background: var(--verde); color: white; border-color: var(--verde); }
+.social-btn:hover { background: var(--cinza-bg); color: var(--cinza-texto); border-color: var(--cinza-borda); }
 
 .footer-col h4 {
     font-size: 0.88rem;

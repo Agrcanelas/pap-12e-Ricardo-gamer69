@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="form-group">
                 <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-input" placeholder="o.teu@email.pt" required
+                <input type="email" name="email" class="form-input" autocomplete="username" placeholder="o.teu@email.pt" required
                        value="<?php echo htmlspecialchars($email_val); ?>">
             </div>
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label class="form-label">Palavra-passe</label>
                     <div class="form-input-icon">
-                        <input type="password" name="senha" id="senha" class="form-input" placeholder="Mín. 8 caracteres" required minlength="8">
+                        <input type="password" name="senha" autocomplete="new-password" id="senha" class="form-input" placeholder="Mín. 8 caracteres" required minlength="8">
                         <button type="button" class="input-icon-btn" onclick="togglePass('senha', this)" tabindex="-1">
                             <i class="fa fa-eye"></i>
                         </button>

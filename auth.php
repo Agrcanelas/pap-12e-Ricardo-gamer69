@@ -21,6 +21,7 @@ try {
         session_regenerate_id(true);
         $_SESSION['user_id']          = $user['id'];
         $_SESSION['user_nome']        = $user['nome'];
+        $_SESSION['user_email']       = $user['email'];
         $_SESSION['tipo_utilizador']  = $user['tipo_utilizador'];
 
         $redirect = $_SESSION['redirect_after_login'] ?? 'index.php';

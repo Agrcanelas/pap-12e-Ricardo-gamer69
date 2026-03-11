@@ -5,10 +5,10 @@
                 <div class="logo">DOA+</div>
                 <p>A plataforma portuguesa de doações online. Ajudamos a ligar pessoas a causas que fazem a diferença.</p>
                 <div class="footer-social">
-                    <a href="#" class="social-btn" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-btn" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-btn" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
-                    <a href="#" class="social-btn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <span class="social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></span>
+                    <span class="social-btn" title="Instagram"><i class="fab fa-instagram"></i></span>
+                    <span class="social-btn" title="Twitter / X"><i class="fab fa-x-twitter"></i></span>
+                    <span class="social-btn" title="LinkedIn"><i class="fab fa-linkedin-in"></i></span>
                 </div>
             </div>
 

@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS utilizadores (
     email            VARCHAR(120) UNIQUE NOT NULL,
     senha            VARCHAR(255) NOT NULL,
     tipo_utilizador  ENUM('utilizador','admin') DEFAULT 'utilizador',
+    foto_perfil      VARCHAR(255) DEFAULT NULL,
     data_registo     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ativo            BOOLEAN DEFAULT TRUE
 );
@@ -122,3 +123,6 @@ INSERT IGNORE INTO doacoes (id_campanha, id_doador, montante, mensagem, anonimo)
 
 SELECT 'DOA+ instalado com sucesso!' AS mensagem;
 SHOW TABLES;
+
+-- Adicionar coluna foto_perfil (correr se ainda não existir)
+ALTER TABLE utilizadores ADD COLUMN IF NOT EXISTS foto_perfil VARCHAR(255) DEFAULT NULL;

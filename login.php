@@ -30,13 +30,13 @@ if (isset($_SESSION['user_id'])) {
         <form action="auth.php" method="POST">
             <div class="form-group">
                 <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-input" placeholder="o.teu@email.pt" required autofocus>
+                <input type="email" name="email" class="form-input" placeholder="o.teu@email.pt" required autofocus autocomplete="username">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Palavra-passe</label>
                 <div class="form-input-icon">
-                    <input type="password" name="senha" id="senha" class="form-input" placeholder="A tua palavra-passe" required>
+                    <input type="password" name="senha" id="senha" class="form-input" placeholder="A tua palavra-passe" required autocomplete="current-password">
                     <button type="button" class="input-icon-btn" onclick="togglePass('senha', this)" tabindex="-1">
                         <i class="fa fa-eye" id="eye-senha"></i>
                     </button>

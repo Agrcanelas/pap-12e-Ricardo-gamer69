@@ -9,6 +9,57 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $msg_tipo = $msg_texto = '';
 
+// Processar upload de foto
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === 0) {
+    $file     = $_FILES['foto_perfil'];
+    $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowed  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    $max_size = 3 * 1024 * 1024; // 3MB
+
+    if (!in_array($ext, $allowed)) {
+        $msg_tipo = 'erro'; $msg_texto = 'Formato inválido. Usa JPG, PNG, GIF ou WEBP.';
+    } elseif ($file['size'] > $max_size) {
+        $msg_tipo = 'erro'; $msg_texto = 'A foto não pode ultrapassar 3MB.';
+    } else {
+        $nome_ficheiro = 'perfil_' . $user_id . '_' . time() . '.' . $ext;
+        $destino = __DIR__ . '/uploads/perfis/' . $nome_ficheiro;
+        if (move_uploaded_file($file['tmp_name'], $destino)) {
+            // Apagar foto antiga
+            try {
+                $stmt_old = $pdo->prepare("SELECT foto_perfil FROM utilizadores WHERE id = :id");
+                $stmt_old->execute(['id' => $user_id]);
+                $foto_antiga = $stmt_old->fetchColumn();
+                if ($foto_antiga && file_exists(__DIR__ . '/uploads/perfis/' . $foto_antiga)) {
+                    unlink(__DIR__ . '/uploads/perfis/' . $foto_antiga);
+                }
+                $pdo->prepare("UPDATE utilizadores SET foto_perfil = :foto WHERE id = :id")
+                    ->execute(['foto' => $nome_ficheiro, 'id' => $user_id]);
+                $msg_tipo = 'sucesso'; $msg_texto = 'Foto de perfil atualizada!';
+            } catch (PDOException $e) {
+                $msg_tipo = 'erro'; $msg_texto = 'Erro ao guardar a foto.';
+            }
+        } else {
+            $msg_tipo = 'erro'; $msg_texto = 'Erro ao fazer upload. Tenta novamente.';
+        }
+    }
+}
+
+// Processar remoção de foto
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remover_foto'])) {
+    try {
+        $stmt_old = $pdo->prepare("SELECT foto_perfil FROM utilizadores WHERE id = :id");
+        $stmt_old->execute(['id' => $user_id]);
+        $foto_antiga = $stmt_old->fetchColumn();
+        if ($foto_antiga && file_exists(__DIR__ . '/uploads/perfis/' . $foto_antiga)) {
+            unlink(__DIR__ . '/uploads/perfis/' . $foto_antiga);
+        }
+        $pdo->prepare("UPDATE utilizadores SET foto_perfil = NULL WHERE id = :id")->execute(['id' => $user_id]);
+        $msg_tipo = 'sucesso'; $msg_texto = 'Foto de perfil removida.';
+    } catch (PDOException $e) {
+        $msg_tipo = 'erro'; $msg_texto = 'Erro ao remover a foto.';
+    }
+}
+
 // Processar atualização
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome       = trim($_POST['nome'] ?? '');
@@ -36,6 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $atual = $stmt->fetch();
                     if (!password_verify($senha_atual, $atual['senha'])) {
                         $msg_tipo = 'erro'; $msg_texto = 'Palavra-passe atual incorreta.';
+                        goto fim_processamento;
+                    }
+                    if (password_verify($nova_senha, $atual['senha'])) {
+                        $msg_tipo = 'erro'; $msg_texto = 'A nova palavra-passe não pode ser igual à atual.';
                         goto fim_processamento;
                     }
                     $hash = password_hash($nova_senha, PASSWORD_DEFAULT);
@@ -83,12 +138,41 @@ $tab_ativa = $_GET['tab'] ?? 'conta';
     <!-- Sidebar -->
     <aside class="perfil-sidebar">
         <div class="perfil-header">
-            <div class="avatar"><?php echo strtoupper(mb_substr($user['nome'], 0, 1)); ?></div>
+            <!-- Avatar / Foto de perfil -->
+            <div style="position:relative; display:inline-block; margin-bottom:12px;">
+                <?php if (!empty($user['foto_perfil']) && file_exists(__DIR__ . '/uploads/perfis/' . $user['foto_perfil'])): ?>
+                    <img src="uploads/perfis/<?php echo htmlspecialchars($user['foto_perfil']); ?>"
+                         style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--verde); display:block;">
+                <?php else: ?>
+                    <div class="avatar"><?php echo strtoupper(mb_substr($user['nome'], 0, 1)); ?></div>
+                <?php endif; ?>
+                <!-- Botão câmara por cima -->
+                <label for="input-foto" title="Alterar foto de perfil"
+                       style="position:absolute; bottom:0; right:0; width:26px; height:26px; background:var(--verde); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid white;">
+                    <i class="fa fa-camera" style="font-size:11px; color:white;"></i>
+                </label>
+            </div>
             <h3><?php echo htmlspecialchars($user['nome']); ?></h3>
             <p><?php echo htmlspecialchars($user['email']); ?></p>
             <span class="badge badge-<?php echo $user['tipo_utilizador']; ?>" style="margin-top:8px;">
                 <?php echo $user['tipo_utilizador'] === 'admin' ? '⚙️ Admin' : '👤 Utilizador'; ?>
             </span>
+
+            <!-- Input de foto oculto — submete automaticamente -->
+            <form method="POST" enctype="multipart/form-data" id="form-foto" style="display:none;">
+                <input type="file" id="input-foto" name="foto_perfil" accept="image/jpeg,image/png,image/webp,image/gif"
+                       onchange="document.getElementById('form-foto').submit();">
+            </form>
+
+            <?php if (!empty($user['foto_perfil']) && file_exists(__DIR__ . '/uploads/perfis/' . $user['foto_perfil'])): ?>
+            <form method="POST" style="margin-top:8px;">
+                <input type="hidden" name="remover_foto" value="1">
+                <button type="submit" style="background:none;border:none;color:var(--cinza-texto);font-size:0.75rem;cursor:pointer;text-decoration:underline;padding:0;"
+                        onclick="return confirm('Remover foto de perfil?')">
+                    <i class="fa fa-trash" style="font-size:0.7rem;"></i> Remover foto
+                </button>
+            </form>
+            <?php endif; ?>
         </div>
         <nav class="perfil-nav">
             <a href="?tab=conta" class="<?php echo $tab_ativa === 'conta' ? 'active' : ''; ?>">
@@ -140,7 +224,12 @@ $tab_ativa = $_GET['tab'] ?? 'conta';
                 </div>
 
                 <div class="secao-form">
-                    <h3>Alterar palavra-passe</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                        <h3 style="margin-bottom:0;">Alterar palavra-passe</h3>
+                        <a href="recuperar-senha.php?from_perfil=1" style="font-size:0.8rem; color:var(--cinza-texto); text-decoration:none;" onmouseover="this.style.color='var(--verde)'" onmouseout="this.style.color='var(--cinza-texto)'">
+                            <i class="fa fa-key"></i> Esqueci-me da palavra-passe
+                        </a>
+                    </div>
                     <p style="font-size:0.85rem;color:var(--cinza-texto);margin-bottom:16px;">Deixa em branco para não alterar.</p>
                     <div class="form-row">
                         <div class="form-group">
