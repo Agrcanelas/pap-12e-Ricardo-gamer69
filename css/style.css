@@ -548,6 +548,14 @@ h4 { font-size: 1.1rem; font-weight: 600; }
 .campanha-sidebar {
     position: sticky;
     top: 88px;
+    max-height: calc(100vh - 108px);
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE */
+}
+
+.campanha-sidebar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
 }
 
 .doacao-box {

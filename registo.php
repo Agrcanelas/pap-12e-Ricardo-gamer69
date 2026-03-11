@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label class="form-label">Confirmar</label>
                     <div class="form-input-icon">
-                        <input type="password" name="conf_senha" id="conf_senha" class="form-input" placeholder="Repetir senha" required>
+                        <input type="password" name="conf_senha" id="conf_senha" class="form-input" placeholder="Repetir palavra-passe" required>
                         <button type="button" class="input-icon-btn" onclick="togglePass('conf_senha', this)" tabindex="-1">
                             <i class="fa fa-eye"></i>
                         </button>

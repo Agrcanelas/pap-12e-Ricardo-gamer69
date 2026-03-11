@@ -1,165 +1,108 @@
 <?php
-/**
- * DOA+ - Política de Privacidade
- */
-
 require_once 'config.php';
-
 $pageTitle = "Política de Privacidade";
-$baseUrl = '';
 ?>
-
 <?php include 'includes/header.php'; ?>
 
-<!-- Conteúdo principal -->
-<main class="w3-container" style="margin-top: 100px; padding: 60px 20px; max-width: 900px; margin-left: auto; margin-right: auto;">
-    
-    <h1 style="color: #ff6f00; text-align: center; margin-bottom: 40px;">Política de Privacidade</h1>
+<main style="padding: 60px 24px 80px; max-width: 860px; margin: 0 auto;">
 
-    <div style="background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); line-height: 1.8;">
+    <div style="text-align:center; margin-bottom:48px;">
+        <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--verde);">DOA+</span>
+        <h1 style="margin-top:8px;">Política de Privacidade</h1>
+        <p style="color:var(--cinza-texto); margin-top:10px;">Última atualização: 9 de março de 2026</p>
+    </div>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">1. Introdução</h3>
-        <p>
-            A privacidade do utilizador é importante para nós. Esta Política de Privacidade explica como o DOA+ 
-            recolhe, usa, divulga e salvaguarda as suas informações.
-        </p>
+    <div style="background:white; padding:48px; border-radius:20px; box-shadow:var(--sombra); border:1px solid var(--cinza-borda); line-height:1.9;">
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">2. Informações que Recolhemos</h3>
-        <p>
-            <strong>Informações fornecidas por ti:</strong>
-        </p>
-        <ul style="color: #666;">
+        <h3 style="margin-top:32px; margin-bottom:12px; color:var(--preto);">1. Introdução</h3>
+        <p>A privacidade do utilizador é importante para nós. Esta Política de Privacidade explica como o DOA+ recolhe, utiliza, divulga e protege as tuas informações.</p>
+
+        <h3 style="margin-top:32px; margin-bottom:12px;">2. Informações que Recolhemos</h3>
+        <p><strong>Informações fornecidas por ti:</strong></p>
+        <ul style="color:var(--cinza-texto); margin:12px 0 12px 24px;">
             <li>Nome completo</li>
-            <li>Endereço de email</li>
-            <li>Senhas (encriptadas)</li>
-            <li>Tipo de perfil (doador ou instituição)</li>
-            <li>Informações de perfil (descrição, foto, localização)</li>
+            <li>Endereço de correio eletrónico</li>
+            <li>Palavra-passe (armazenada de forma encriptada)</li>
+            <li>Tipo de conta (utilizador ou administrador)</li>
             <li>Histórico de doações e campanhas criadas</li>
         </ul>
-
-        <p style="margin-top: 20px;">
-            <strong>Informações recolhidas automaticamente:</strong>
-        </p>
-        <ul style="color: #666;">
+        <p><strong>Informações recolhidas automaticamente:</strong></p>
+        <ul style="color:var(--cinza-texto); margin:12px 0 12px 24px;">
             <li>Endereço IP</li>
             <li>Tipo e versão do navegador</li>
-            <li>Cookies e tecnologias de rastreamento similares</li>
-            <li>Padrões de uso e atividade na plataforma</li>
+            <li>Cookies de sessão</li>
             <li>Data e hora de acesso</li>
         </ul>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">3. Como Utilizamos as Suas Informações</h3>
-        <p>
-            Utilizamos as informações recolhidas para:
-        </p>
-        <ul style="color: #666;">
-            <li>Criar e manter sua conta</li>
+        <h3 style="margin-top:32px; margin-bottom:12px;">3. Como Utilizamos as Tuas Informações</h3>
+        <p>Utilizamos as informações recolhidas para:</p>
+        <ul style="color:var(--cinza-texto); margin:12px 0 12px 24px;">
+            <li>Criar e manter a tua conta</li>
             <li>Processar doações e transações</li>
             <li>Enviar comunicações importantes (confirmações, atualizações, suporte)</li>
             <li>Melhorar e personalizar o serviço</li>
-            <li>Detectar e prevenir fraudes</li>
+            <li>Detetar e prevenir fraudes</li>
             <li>Cumprir obrigações legais</li>
-            <li>Analisar tendências e estatísticas de uso</li>
+            <li>Analisar tendências e estatísticas de utilização</li>
         </ul>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">4. Segurança de Dados</h3>
-        <p>
-            O DOA+ implementa medidas de segurança técnicas, administrativas e físicas para proteger suas informações:
-        </p>
-        <ul style="color: #666;">
-            <li>Encriptação de senhas (hashing com PASSWORD_DEFAULT)</li>
-            <li>Conexões HTTPS (quando disponível)</li>
-            <li>Firewalls e sistemas de detecção de intrusão</li>
+        <h3 style="margin-top:32px; margin-bottom:12px;">4. Segurança dos Dados</h3>
+        <p>O DOA+ implementa medidas de segurança técnicas e administrativas para proteger as tuas informações:</p>
+        <ul style="color:var(--cinza-texto); margin:12px 0 12px 24px;">
+            <li>Encriptação de palavras-passe (hashing bcrypt)</li>
+            <li>Ligações HTTPS (quando disponível)</li>
             <li>Acesso restrito a informações sensíveis</li>
             <li>Auditorias de segurança regulares</li>
         </ul>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">5. Compartilhamento de Informações</h3>
-        <p>
-            Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros, exceto quando:
-        </p>
-        <ul style="color: #666;">
-            <li>Necessário para processar transações (intermediários de pagamento)</li>
-            <li>Exigido por lei ou autoridade judicial</li>
-            <li>Para proteger os direitos e segurança do DOA+</li>
-            <li>Com sua consentimento explícito</li>
+        <h3 style="margin-top:32px; margin-bottom:12px;">5. Partilha de Informações</h3>
+        <p>Não vendemos, alugamos nem partilhamos as tuas informações pessoais com terceiros, exceto quando:</p>
+        <ul style="color:var(--cinza-texto); margin:12px 0 12px 24px;">
+            <li>For necessário para processar transações</li>
+            <li>For exigido por lei ou autoridade judicial</li>
+            <li>For necessário para proteger os direitos e segurança do DOA+</li>
+            <li>Tiveres dado o teu consentimento explícito</li>
         </ul>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">6. Cookies e Rastreamento</h3>
-        <p>
-            O DOA+ utiliza cookies para:
-        </p>
-        <ul style="color: #666;">
-            <li>Manter-te autenticado na plataforma</li>
-            <li>Lembrar suas preferências</li>
-            <li>Analisar o uso da plataforma</li>
-            <li>Melhorar a experiência do utilizador</li>
-        </ul>
-        <p>
-            Tu podes desativar cookies nas configurações do teu navegador, mas isso pode afetar a funcionalidade do serviço.
-        </p>
+        <h3 style="margin-top:32px; margin-bottom:12px;">6. Cookies e Rastreamento</h3>
+        <p>O DOA+ utiliza cookies de sessão para manteres a sessão iniciada na plataforma. Podes desativar os cookies nas definições do teu navegador, mas isso poderá afetar a funcionalidade do serviço.</p>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">7. Seus Direitos</h3>
-        <p>
-            Tu tens o direito de:
-        </p>
-        <ul style="color: #666;">
-            <li>Aceder às suas informações pessoais</li>
+        <h3 style="margin-top:32px; margin-bottom:12px;">7. Os Teus Direitos</h3>
+        <p>Tens o direito de:</p>
+        <ul style="color:var(--cinza-texto); margin:12px 0 12px 24px;">
+            <li>Aceder às tuas informações pessoais</li>
             <li>Corrigir informações inexatas</li>
-            <li>Solicitar a eliminação da sua conta</li>
-            <li>Opor-se a determinados usos dos seus dados</li>
-            <li>Solicitar uma cópia dos seus dados pessoais</li>
+            <li>Solicitar a eliminação da tua conta</li>
+            <li>Opor-te a determinadas utilizações dos teus dados</li>
+            <li>Solicitar uma cópia dos teus dados pessoais</li>
         </ul>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">8. Retenção de Dados</h3>
-        <p>
-            Mantemos suas informações pessoais apenas pelo tempo necessário para fornecer o serviço 
-            e cumprir nossas obrigações legais. Após isso, os dados são eliminados ou anonimizados.
-        </p>
+        <h3 style="margin-top:32px; margin-bottom:12px;">8. Retenção de Dados</h3>
+        <p>Mantemos as tuas informações pessoais apenas pelo tempo necessário para prestar o serviço e cumprir as nossas obrigações legais. Após esse período, os dados são eliminados ou anonimizados.</p>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">9. Links Externos</h3>
-        <p>
-            O DOA+ pode conter links para sites externos. Não somos responsáveis pela política de privacidade 
-            desses sites. Recomendamos ler as políticas de privacidade de qualquer site externo visitado.
-        </p>
+        <h3 style="margin-top:32px; margin-bottom:12px;">9. Ligações Externas</h3>
+        <p>O DOA+ pode conter ligações para sítios externos. Não somos responsáveis pela política de privacidade desses sítios. Recomendamos que leias as políticas de privacidade de qualquer sítio externo que visites.</p>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">10. Menores de Idade</h3>
-        <p>
-            O DOA+ não coleciona intencionalmente informações de menores de 18 anos. 
-            Se soubermos que um menor forneceu informações pessoais, 
-            eliminaremos essas informações prontamente.
-        </p>
+        <h3 style="margin-top:32px; margin-bottom:12px;">10. Menores de Idade</h3>
+        <p>O DOA+ não recolhe intencionalmente informações de menores de 18 anos. Caso tomemos conhecimento de que um menor forneceu informações pessoais, eliminaremos essas informações de imediato.</p>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">11. Alterações a Política de Privacidade</h3>
-        <p>
-            O DOA+ pode atualizar este Política de Privacidade ocasionalmente. 
-            Tu serás notificado de alterações significativas e a tua continuação de uso constitui aceitação das mudanças.
-        </p>
+        <h3 style="margin-top:32px; margin-bottom:12px;">11. Alterações à Política de Privacidade</h3>
+        <p>O DOA+ pode atualizar esta Política de Privacidade ocasionalmente. Serás notificado de alterações significativas e a continuação da utilização constitui aceitação das mudanças.</p>
 
-        <h3 style="color: #ff6f00; margin-top: 30px; margin-bottom: 15px;">12. Contacto</h3>
-        <p>
-            Se tem dúvidas sobre esta Política de Privacidade ou como lidamos com suas informações, 
-            pode contactar-nos em:
-        </p>
-        <p style="margin: 15px 0; color: #333;">
+        <h3 style="margin-top:32px; margin-bottom:12px;">12. Contacto</h3>
+        <p>Se tiveres dúvidas sobre esta Política de Privacidade, podes contactar-nos em:</p>
+        <p style="margin:16px 0; color:#333;">
             <strong>Email:</strong> suporte@doaplus.pt<br>
-            <strong>Endereço:</strong> DOA+, Plataforma de Donativos, Portugal
+            <strong>Morada:</strong> DOA+, Plataforma de Donativos, Portugal
         </p>
 
-        <hr style="margin: 40px 0;">
-
-        <p style="text-align: center; color: #999; font-size: 0.9em;">
-            <strong>Última atualização:</strong> 9 de Março de 2026
-        </p>
-
+        <hr style="margin:40px 0; border:none; border-top:1px solid var(--cinza-borda);">
+        <p style="text-align:center; color:var(--cinza-texto); font-size:0.85rem;">Última atualização: 9 de março de 2026</p>
     </div>
 
-    <div style="text-align: center; margin-top: 40px; margin-bottom: 40px;">
-        <a href="registo.php" class="btn btn-primary" style="background-color: #ff6f00; color: white; padding: 12px 30px; border-radius: 4px; text-decoration: none; display: inline-block;">
-            Voltar ao Registo
-        </a>
+    <div style="text-align:center; margin-top:32px;">
+        <a href="index.php" class="btn btn-outline"><i class="fa fa-arrow-left"></i> Voltar ao início</a>
     </div>
-
 </main>
 
 <?php include 'includes/footer.php'; ?>

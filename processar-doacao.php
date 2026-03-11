@@ -13,9 +13,10 @@ $id_campanha = intval($_POST['id_campanha'] ?? 0);
 $montante    = floatval($_POST['montante'] ?? 0);
 $mensagem    = trim($_POST['mensagem'] ?? '');
 $anonimo     = isset($_POST['anonimo']) ? 1 : 0;
+    header("Location: obrigado.php?campanha=$id_campanha&valor=$montante"); exit;
 
 if ($id_campanha <= 0 || $montante < 1) {
-    header("Location: campanha.php?id=$id_campanha&erro=valor"); exit;
+    header("Location: campanha.php?id=$id_campanha#doar"); exit;
 }
 
 try {
@@ -40,7 +41,7 @@ try {
     $stmt = $pdo->prepare("UPDATE campanhas SET valor_angariado = valor_angariado + :montante WHERE id = :id");
     $stmt->execute(['montante' => $montante, 'id' => $id_campanha]);
 
-    header("Location: campanha.php?id=$id_campanha&doacao=sucesso"); exit;
+    header("Location: obrigado.php?campanha=$id_campanha&valor=$montante"); exit;
 } catch (PDOException $e) {
     header("Location: campanha.php?id=$id_campanha&erro=geral"); exit;
 }

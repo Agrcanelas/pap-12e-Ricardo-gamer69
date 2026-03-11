@@ -28,14 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 if (!empty($nova_senha)) {
                     if (strlen($nova_senha) < 8) {
-                        $msg_tipo = 'erro'; $msg_texto = 'A nova senha deve ter pelo menos 8 caracteres.';
+                        $msg_tipo = 'erro'; $msg_texto = 'A nova palavra-passe deve ter pelo menos 8 caracteres.';
                         goto fim_processamento;
                     }
                     $stmt = $pdo->prepare("SELECT senha FROM utilizadores WHERE id = :id");
                     $stmt->execute(['id' => $user_id]);
                     $atual = $stmt->fetch();
                     if (!password_verify($senha_atual, $atual['senha'])) {
-                        $msg_tipo = 'erro'; $msg_texto = 'Senha atual incorreta.';
+                        $msg_tipo = 'erro'; $msg_texto = 'Palavra-passe atual incorreta.';
                         goto fim_processamento;
                     }
                     $hash = password_hash($nova_senha, PASSWORD_DEFAULT);
@@ -144,11 +144,11 @@ $tab_ativa = $_GET['tab'] ?? 'conta';
                     <p style="font-size:0.85rem;color:var(--cinza-texto);margin-bottom:16px;">Deixa em branco para não alterar.</p>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Senha atual</label>
+                            <label class="form-label">Palavra-passe atual</label>
                             <input type="password" name="senha_atual" class="form-input" placeholder="••••••••">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Nova senha</label>
+                            <label class="form-label">Nova palavra-passe</label>
                             <input type="password" name="nova_senha" class="form-input" placeholder="Mín. 8 caracteres" minlength="8">
                         </div>
                     </div>

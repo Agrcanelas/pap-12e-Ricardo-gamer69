@@ -48,17 +48,6 @@ CREATE TABLE IF NOT EXISTS doacoes (
     FOREIGN KEY (id_doador)   REFERENCES utilizadores(id) ON DELETE CASCADE
 );
 
--- Tabela: pagamentos (opcional, para integração futura)
-CREATE TABLE IF NOT EXISTS pagamentos (
-    id                   INT PRIMARY KEY AUTO_INCREMENT,
-    id_doacao            INT NOT NULL UNIQUE,
-    metodo_pagamento     ENUM('cartao_credito','paypal','transferencia','outro') NOT NULL,
-    referencia_pagamento VARCHAR(100) DEFAULT NULL,
-    status               ENUM('pendente','confirmado','recusado') DEFAULT 'pendente',
-    data_pagamento       TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (id_doacao) REFERENCES doacoes(id) ON DELETE CASCADE
-);
-
 -- Tabela: atualizacoes_campanha
 CREATE TABLE IF NOT EXISTS atualizacoes_campanha (
     id               INT PRIMARY KEY AUTO_INCREMENT,

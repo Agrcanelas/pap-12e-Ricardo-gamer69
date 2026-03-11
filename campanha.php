@@ -102,7 +102,14 @@ $icone = $categorias_icones[$c['categoria']] ?? 'fa-heart';
             <span class="campanha-by">Por <strong><?php echo htmlspecialchars($c['instituicao']); ?></strong></span>
         </div>
 
-        <h1 style="margin-bottom:24px;"><?php echo htmlspecialchars($c['titulo']); ?></h1>
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap;">
+            <h1 style="margin:0; flex:1;"><?php echo htmlspecialchars($c['titulo']); ?></h1>
+            <?php if (isset($_SESSION['user_id']) && ($c['id_criador'] == $_SESSION['user_id'] || ($_SESSION['tipo_utilizador'] ?? '') === 'admin')): ?>
+            <a href="editar-campanha.php?id=<?php echo $c['id']; ?>" class="btn btn-outline btn-sm" style="white-space:nowrap; flex-shrink:0;">
+                <i class="fa fa-pen-to-square"></i> Editar
+            </a>
+            <?php endif; ?>
+        </div>
 
         <!-- Tabs -->
         <div style="border-bottom:2px solid var(--cinza-borda); display:flex; gap:0; margin-bottom:32px;">
@@ -199,40 +206,15 @@ $icone = $categorias_icones[$c['categoria']] ?? 'fa-heart';
             <?php endif; ?>
 
             <?php if ($c['status'] === 'ativa'): ?>
-            <form method="POST" action="processar-doacao.php">
-                <input type="hidden" name="id_campanha" value="<?php echo $c['id']; ?>">
-
-                <label class="form-label" style="font-size:0.85rem;">Escolhe o valor:</label>
-                <div class="valores-rapidos">
-                    <div class="valor-btn" onclick="setValor(10, this)">€10</div>
-                    <div class="valor-btn" onclick="setValor(25, this)">€25</div>
-                    <div class="valor-btn" onclick="setValor(50, this)">€50</div>
-                    <div class="valor-btn" onclick="setValor(100, this)">€100</div>
-                    <div class="valor-btn" onclick="setValor(250, this)">€250</div>
-                    <div class="valor-btn" onclick="setValor(500, this)">€500</div>
-                </div>
-
-                <input type="number" name="montante" id="input-valor"
-                       class="input-valor-custom" placeholder="Ou introduz outro valor (€)"
-                       min="1" step="0.01">
-
-                <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:0.85rem;cursor:pointer;">
-                    <input type="checkbox" name="anonimo" value="1" style="accent-color:var(--verde);">
-                    Fazer donativo de forma anónima
-                </label>
-
-                <textarea name="mensagem" class="form-input" placeholder="Deixa uma mensagem de apoio (opcional)" rows="2" style="margin-bottom:14px;border-radius:var(--radius-sm);font-size:0.9rem;resize:none;"></textarea>
-
                 <?php if (!isset($_SESSION['user_id'])): ?>
-                    <a href="login.php" class="btn-doacao" style="display:block;text-align:center;line-height:1;">
+                    <a href="login.php?redirect=campanha.php?id=<?php echo $c['id']; ?>" class="btn-doacao" style="display:block;text-align:center;">
                         <i class="fa fa-heart"></i> Entrar para Doar
                     </a>
                 <?php else: ?>
-                    <button type="submit" class="btn-doacao">
+                    <button class="btn-doacao" onclick="abrirModal()">
                         <i class="fa fa-heart"></i> Doar Agora
                     </button>
                 <?php endif; ?>
-            </form>
             <?php else: ?>
                 <div class="alert alert-info">
                     <i class="fa fa-info-circle"></i> Esta campanha foi concluída. Obrigado a todos os apoiantes!
@@ -250,24 +232,7 @@ $icone = $categorias_icones[$c['categoria']] ?? 'fa-heart';
                 </div>
             </div>
 
-            <!-- Partilha -->
-            <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--cinza-borda);">
-                <p style="font-size:0.82rem;font-weight:600;margin-bottom:10px;color:#666;">Partilha esta campanha:</p>
-                <div style="display:flex;gap:8px;">
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']); ?>"
-                       target="_blank" class="btn btn-sm" style="background:#1877f2;color:white;flex:1;justify-content:center;">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']); ?>&text=<?php echo urlencode($c['titulo']); ?>"
-                       target="_blank" class="btn btn-sm" style="background:#000;color:white;flex:1;justify-content:center;">
-                        <i class="fab fa-x-twitter"></i>
-                    </a>
-                    <a href="https://api.whatsapp.com/send?text=<?php echo urlencode($c['titulo'] . ' — ' . 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']); ?>"
-                       target="_blank" class="btn btn-sm" style="background:#25d366;color:white;flex:1;justify-content:center;">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
-                </div>
-            </div>
+
         </div>
     </div>
 </div>
@@ -314,20 +279,364 @@ $icone = $categorias_icones[$c['categoria']] ?? 'fa-heart';
 </section>
 <?php endif; ?>
 
+<!-- ===================== MODAL DE DOAÇÃO ===================== -->
+<div id="modal-doacao" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; border-radius:24px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.2); position:relative;">
+
+        <!-- Header do modal -->
+        <div style="padding:24px 28px 0; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--cinza-borda); padding-bottom:18px;">
+            <div>
+                <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--cinza-texto); margin-bottom:2px;">Passo <span id="passo-num">1</span> de 3</div>
+                <div style="font-weight:700; font-size:1.05rem; color:var(--preto);" id="passo-titulo">Escolhe o valor</div>
+            </div>
+            <button onclick="fecharModal()" style="background:var(--cinza-bg); border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1rem; color:var(--cinza-texto); display:flex; align-items:center; justify-content:center;">
+                <i class="fa fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Barra de progresso -->
+        <div style="height:3px; background:var(--cinza-borda);">
+            <div id="progress-modal" style="height:100%; background:var(--verde); transition:width 0.4s ease; width:33%;"></div>
+        </div>
+
+        <!-- Campanha resumo -->
+        <div style="padding:16px 28px; background:var(--cinza-bg); display:flex; align-items:center; gap:14px; border-bottom:1px solid var(--cinza-borda);">
+            <div style="width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg,var(--verde),#00c875); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="fa fa-heart" style="color:rgba(255,255,255,0.8);"></i>
+            </div>
+            <div>
+                <div style="font-weight:600; font-size:0.9rem;"><?php echo htmlspecialchars(mb_substr($c['titulo'], 0, 60)); ?></div>
+                <div style="font-size:0.78rem; color:var(--cinza-texto);">por <?php echo htmlspecialchars($c['instituicao']); ?></div>
+            </div>
+        </div>
+
+        <div style="padding:28px;">
+
+            <!-- PASSO 1: Valor -->
+            <div id="passo-1">
+                <p style="color:var(--cinza-texto); font-size:0.9rem; margin-bottom:20px;">Cada contribuição faz a diferença. Escolhe o valor com que queres ajudar.</p>
+
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;">
+                    <?php foreach ([5,10,25,50,100,250] as $v): ?>
+                    <button type="button" class="valor-opcao" onclick="selecionarValor(<?php echo $v; ?>, this)"
+                        style="padding:14px 8px; border:2px solid var(--cinza-borda); border-radius:12px; background:var(--cinza-bg); font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.2s; font-family:'DM Sans',sans-serif;">
+                        €<?php echo $v; ?>
+                    </button>
+                    <?php endforeach; ?>
+                </div>
+
+                <div style="position:relative; margin-bottom:24px;">
+                    <span style="position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:700; color:var(--cinza-texto); font-size:1.1rem;">€</span>
+                    <input type="number" id="valor-custom" placeholder="Outro valor" min="1" step="1"
+                        oninput="limparSelecao()"
+                        style="width:100%; padding:14px 14px 14px 32px; border:2px solid var(--cinza-borda); border-radius:12px; font-size:1rem; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.2s;"
+                        onfocus="this.style.borderColor='var(--verde)'" onblur="this.style.borderColor='var(--cinza-borda)'">
+                </div>
+
+                <div id="erro-valor" style="display:none;" class="alert alert-erro" style="margin-bottom:14px;">
+                    <i class="fa fa-circle-exclamation"></i> Por favor escolhe ou introduz um valor.
+                </div>
+
+                <button onclick="irPasso2()" class="btn-doacao">
+                    Continuar <i class="fa fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- PASSO 2: Mensagem e opções -->
+            <div id="passo-2" style="display:none;">
+                <div style="background:var(--verde-claro); border-radius:12px; padding:16px 20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:var(--cinza-texto); font-size:0.88rem;">O teu donativo</span>
+                    <span id="resumo-valor" style="font-family:'Fraunces',serif; font-size:1.6rem; font-weight:900; color:var(--verde);">€0</span>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; font-weight:600; font-size:0.88rem; color:#444; margin-bottom:8px;">
+                        Deixa uma mensagem de apoio <span style="font-weight:400; color:var(--cinza-texto);">(opcional)</span>
+                    </label>
+                    <textarea id="modal-mensagem" placeholder="Ex: Força! Estamos convosco 💪" rows="3"
+                        style="width:100%; padding:13px 16px; border:2px solid var(--cinza-borda); border-radius:12px; font-family:'DM Sans',sans-serif; font-size:0.95rem; resize:none; outline:none; transition:border-color 0.2s;"
+                        onfocus="this.style.borderColor='var(--verde)'" onblur="this.style.borderColor='var(--cinza-borda)'"></textarea>
+                </div>
+
+                <label style="display:flex; align-items:center; gap:12px; padding:14px 16px; border:2px solid var(--cinza-borda); border-radius:12px; cursor:pointer; margin-bottom:24px; transition:border-color 0.2s;"
+                       onmouseover="this.style.borderColor='var(--verde)'" onmouseout="this.style.borderColor='var(--cinza-borda)'">
+                    <input type="checkbox" id="modal-anonimo" style="accent-color:var(--verde); width:18px; height:18px;">
+                    <div>
+                        <div style="font-weight:600; font-size:0.9rem;">Doação anónima</div>
+                        <div style="font-size:0.78rem; color:var(--cinza-texto);">O teu nome não aparecerá publicamente</div>
+                    </div>
+                </label>
+
+                <div style="display:flex; gap:10px;">
+                    <button onclick="irPasso(1)" class="btn btn-outline" style="flex:1;">
+                        <i class="fa fa-arrow-left"></i> Voltar
+                    </button>
+                    <button onclick="irPasso3()" class="btn btn-primary" style="flex:2; padding:14px;">
+                        Continuar <i class="fa fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASSO 3: Pagamento -->
+            <div id="passo-3" style="display:none;">
+                <div style="background:var(--verde-claro); border-radius:12px; padding:16px 20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:var(--cinza-texto); font-size:0.88rem;">Total a pagar</span>
+                    <span id="resumo-valor-2" style="font-family:'Fraunces',serif; font-size:1.6rem; font-weight:900; color:var(--verde);">€0</span>
+                </div>
+
+                <!-- Formulário Cartão -->
+                <div id="form-cartao">
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block; font-weight:600; font-size:0.82rem; color:#444; margin-bottom:6px;">Nome no cartão</label>
+                        <input type="text" id="cartao-nome" placeholder="Ex: JOÃO A SILVA" maxlength="26"
+                            oninput="this.value=this.value.toUpperCase()"
+                            style="width:100%; padding:12px 14px; border:2px solid var(--cinza-borda); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.95rem; outline:none; letter-spacing:1px;"
+                            onfocus="this.style.borderColor='var(--verde)'" onblur="this.style.borderColor='var(--cinza-borda)'">
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block; font-weight:600; font-size:0.82rem; color:#444; margin-bottom:6px;">Número do cartão</label>
+                        <!-- Bandeiras (SVG inline — sem CDN) -->
+                        <div style="display:flex; gap:6px; margin-bottom:8px; align-items:center;">
+                            <span style="font-size:0.72rem; color:var(--cinza-texto);">Aceites:</span>
+                            <!-- Visa -->
+                            <svg id="logo-visa" width="38" height="24" viewBox="0 0 38 24" style="opacity:0.3; transition:opacity 0.2s; border-radius:4px; border:1px solid #ddd;" title="Visa">
+                                <rect width="38" height="24" rx="4" fill="#1A1F71"/>
+                                <text x="19" y="17" text-anchor="middle" font-family="Arial" font-weight="900" font-size="11" fill="white" letter-spacing="1">VISA</text>
+                            </svg>
+                            <!-- Mastercard -->
+                            <svg id="logo-mastercard" width="38" height="24" viewBox="0 0 38 24" style="opacity:0.3; transition:opacity 0.2s; border-radius:4px; border:1px solid #ddd;" title="Mastercard">
+                                <rect width="38" height="24" rx="4" fill="#252525"/>
+                                <circle cx="15" cy="12" r="7" fill="#EB001B"/>
+                                <circle cx="23" cy="12" r="7" fill="#F79E1B"/>
+                                <path d="M19 6.8a7 7 0 0 1 0 10.4A7 7 0 0 1 19 6.8z" fill="#FF5F00"/>
+                            </svg>
+                            <!-- Amex -->
+                            <svg id="logo-amex" width="38" height="24" viewBox="0 0 38 24" style="opacity:0.3; transition:opacity 0.2s; border-radius:4px; border:1px solid #ddd;" title="American Express">
+                                <rect width="38" height="24" rx="4" fill="#2E77BC"/>
+                                <text x="19" y="17" text-anchor="middle" font-family="Arial" font-weight="900" font-size="8" fill="white" letter-spacing="0.5">AMEX</text>
+                            </svg>
+                            <!-- Maestro -->
+                            <svg id="logo-maestro" width="38" height="24" viewBox="0 0 38 24" style="opacity:0.3; transition:opacity 0.2s; border-radius:4px; border:1px solid #ddd;" title="Maestro">
+                                <rect width="38" height="24" rx="4" fill="#fff" stroke="#ddd"/>
+                                <circle cx="15" cy="12" r="7" fill="#CC0000" opacity="0.9"/>
+                                <circle cx="23" cy="12" r="7" fill="#1A1F71" opacity="0.9"/>
+                                <text x="19" y="21" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="6" fill="white">maestro</text>
+                            </svg>
+                        </div>
+                        <div style="position:relative;">
+                            <input type="text" id="cartao-numero" placeholder="0000 0000 0000 0000" maxlength="19"
+                                oninput="formatarCartao(this)"
+                                style="width:100%; padding:12px 52px 12px 14px; border:2px solid var(--cinza-borda); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:1rem; outline:none; letter-spacing:2px; box-sizing:border-box;"
+                                onfocus="this.style.borderColor='var(--verde)'" onblur="this.style.borderColor='var(--cinza-borda)'">
+                            <span id="cartao-bandeira" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); height:28px; display:flex; align-items:center;"></span>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                        <div>
+                            <label style="display:block; font-weight:600; font-size:0.82rem; color:#444; margin-bottom:6px;">Validade</label>
+                            <input type="text" id="cartao-validade" placeholder="MM/AA" maxlength="5"
+                                oninput="formatarValidade(this)"
+                                style="width:100%; padding:12px 14px; border:2px solid var(--cinza-borda); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.95rem; outline:none;"
+                                onfocus="this.style.borderColor='var(--verde)'" onblur="this.style.borderColor='var(--cinza-borda)'">
+                        </div>
+                        <div>
+                            <label style="display:block; font-weight:600; font-size:0.82rem; color:#444; margin-bottom:6px;">CVV</label>
+                            <input type="password" id="cartao-cvv" placeholder="•••" maxlength="4"
+                                oninput="this.value=this.value.replace(/\D/g,'')"
+                                style="width:100%; padding:12px 14px; border:2px solid var(--cinza-borda); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.95rem; outline:none;"
+                                onfocus="this.style.borderColor='var(--verde)'" onblur="this.style.borderColor='var(--cinza-borda)'">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="erro-pagamento" style="display:none; margin:14px 0;" class="alert alert-erro">
+                    <i class="fa fa-circle-exclamation"></i> <span id="erro-pagamento-msg">Preenche todos os campos.</span>
+                </div>
+
+                <form id="form-doacao-final" method="POST" action="processar-doacao.php" style="display:none;">
+                    <input type="hidden" name="id_campanha" value="<?php echo $c['id']; ?>">
+                    <input type="hidden" name="montante"    id="final-montante">
+                    <input type="hidden" name="mensagem"    id="final-mensagem">
+                    <input type="hidden" name="anonimo"     id="final-anonimo" value="0">
+                </form>
+
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button onclick="irPasso(2)" class="btn btn-outline" style="flex:1;">
+                        <i class="fa fa-arrow-left"></i> Voltar
+                    </button>
+                    <button onclick="confirmarDoacao()" class="btn-doacao" style="flex:2;" id="btn-confirmar">
+                        <i class="fa fa-lock"></i> Pagar Agora
+                    </button>
+                </div>
+
+                <p style="text-align:center; font-size:0.75rem; color:var(--cinza-texto); margin-top:14px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa fa-shield-halved" style="color:var(--verde);"></i> Simulação segura — nenhum dado é processado
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <script>
-function setValor(val, el) {
-    document.getElementById('input-valor').value = val;
-    document.querySelectorAll('.valor-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
+// ---- TABS ----
+function showTab(tab) {
+    document.getElementById('content-historia').style.display = tab === 'historia' ? 'block' : 'none';
+    document.getElementById('content-doacoes').style.display  = tab === 'doacoes'  ? 'block' : 'none';
+    document.getElementById('tab-historia').style.borderBottomColor = tab === 'historia' ? 'var(--verde)' : 'transparent';
+    document.getElementById('tab-doacoes').style.borderBottomColor  = tab === 'doacoes'  ? 'var(--verde)' : 'transparent';
+    document.getElementById('tab-historia').style.color = tab === 'historia' ? 'var(--verde)' : 'var(--cinza-texto)';
+    document.getElementById('tab-doacoes').style.color  = tab === 'doacoes'  ? 'var(--verde)' : 'var(--cinza-texto)';
 }
 
-function showTab(tab) {
-    document.getElementById('content-historia').style.display  = tab === 'historia'  ? 'block' : 'none';
-    document.getElementById('content-doacoes').style.display   = tab === 'doacoes'   ? 'block' : 'none';
-    document.getElementById('tab-historia').style.borderBottomColor  = tab === 'historia'  ? 'var(--verde)' : 'transparent';
-    document.getElementById('tab-doacoes').style.borderBottomColor   = tab === 'doacoes'   ? 'var(--verde)' : 'transparent';
-    document.getElementById('tab-historia').style.color  = tab === 'historia'  ? 'var(--verde)' : 'var(--cinza-texto)';
-    document.getElementById('tab-doacoes').style.color   = tab === 'doacoes'   ? 'var(--verde)' : 'var(--cinza-texto)';
+// ---- MODAL ----
+let valorSelecionado = 0;
+
+function abrirModal() {
+    document.getElementById('modal-doacao').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharModal() {
+    document.getElementById('modal-doacao').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// Fechar ao clicar fora
+document.getElementById('modal-doacao').addEventListener('click', function(e) {
+    if (e.target === this) fecharModal();
+});
+
+// Fechar com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') fecharModal();
+});
+
+function selecionarValor(val, el) {
+    valorSelecionado = val;
+    document.getElementById('valor-custom').value = '';
+    document.querySelectorAll('.valor-opcao').forEach(b => {
+        b.style.borderColor = 'var(--cinza-borda)';
+        b.style.background  = 'var(--cinza-bg)';
+        b.style.color       = 'var(--preto)';
+    });
+    el.style.borderColor = 'var(--verde)';
+    el.style.background  = 'var(--verde-claro)';
+    el.style.color       = 'var(--verde-escuro)';
+    document.getElementById('erro-valor').style.display = 'none';
+}
+
+function limparSelecao() {
+    valorSelecionado = 0;
+    document.querySelectorAll('.valor-opcao').forEach(b => {
+        b.style.borderColor = 'var(--cinza-borda)';
+        b.style.background  = 'var(--cinza-bg)';
+        b.style.color       = 'var(--preto)';
+    });
+}
+
+function getValorFinal() {
+    const custom = parseFloat(document.getElementById('valor-custom').value);
+    return custom > 0 ? custom : valorSelecionado;
+}
+
+function irPasso(n) {
+    [1,2,3].forEach(i => document.getElementById('passo-'+i).style.display = i===n ? 'block' : 'none');
+    document.getElementById('passo-num').textContent = n;
+    const titulos = {1:'Escolhe o valor', 2:'A tua mensagem', 3:'Confirmar doação'};
+    document.getElementById('passo-titulo').textContent = titulos[n];
+    document.getElementById('progress-modal').style.width = (n * 33.33) + '%';
+    // Scroll ao topo do modal
+    document.querySelector('#modal-doacao > div').scrollTop = 0;
+}
+
+function irPasso2() {
+    const val = getValorFinal();
+    if (!val || val < 1) {
+        document.getElementById('erro-valor').style.display = 'flex';
+        return;
+    }
+    valorSelecionado = val;
+    document.getElementById('resumo-valor').textContent = '€' + val.toFixed(2).replace('.', ',');
+    irPasso(2);
+}
+
+function irPasso3() {
+    const val = getValorFinal();
+    document.getElementById('resumo-valor-2').textContent = '€' + val.toFixed(2).replace('.', ',');
+    document.getElementById('final-montante').value = val;
+    document.getElementById('final-mensagem').value = document.getElementById('modal-mensagem').value;
+    document.getElementById('final-anonimo').value  = document.getElementById('modal-anonimo').checked ? '1' : '0';
+    irPasso(3);
+}
+
+let metodoPagamento = 'cartao';
+
+function formatarCartao(input) {
+    const digits = input.value.replace(/\D/g, '').substring(0, 16);
+    input.value = digits.replace(/(.{4})(?=.)/g, '$1 ');
+
+    const logos = ['visa','mastercard','amex','maestro'];
+    logos.forEach(l => {
+        const el = document.getElementById('logo-' + l);
+        if (el) { el.style.opacity = '0.3'; }
+    });
+    document.getElementById('cartao-bandeira').innerHTML = '';
+
+    let bandeira = null;
+    if (/^4/.test(digits))                                                         bandeira = 'visa';
+    else if (/^5[1-5]/.test(digits) || /^2[2-7]/.test(digits))                    bandeira = 'mastercard';
+    else if (/^3[47]/.test(digits))                                                bandeira = 'amex';
+    else if (/^(5018|5020|5038|6304|6759|676[1-3]|0604|6390)/.test(digits))       bandeira = 'maestro';
+
+    if (bandeira) {
+        const logoEl = document.getElementById('logo-' + bandeira);
+        if (logoEl) {
+            logoEl.style.opacity = '1';
+            // Clonar SVG para mostrar dentro do input
+            const clone = logoEl.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.style.opacity = '1';
+            clone.style.height  = '22px';
+            clone.style.width   = 'auto';
+            document.getElementById('cartao-bandeira').appendChild(clone);
+        }
+    }
+}
+
+function formatarValidade(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 4);
+    if (v.length >= 3) v = v.substring(0,2) + '/' + v.substring(2);
+    input.value = v;
+}
+
+function mostrarErroPagamento(msg) {
+    const el = document.getElementById('erro-pagamento');
+    document.getElementById('erro-pagamento-msg').textContent = msg;
+    el.style.display = 'flex';
+}
+
+function confirmarDoacao() {
+    document.getElementById('erro-pagamento').style.display = 'none';
+
+    const nome     = document.getElementById('cartao-nome').value.trim();
+    const numero   = document.getElementById('cartao-numero').value.replace(/\s/g,'');
+    const validade = document.getElementById('cartao-validade').value;
+    const cvv      = document.getElementById('cartao-cvv').value;
+
+    if (!nome)                                          { mostrarErroPagamento('Introduz o nome no cartão.'); return; }
+    if (numero.length < 16)                             { mostrarErroPagamento('Número de cartão inválido — precisas de 16 dígitos.'); return; }
+    if (!/^\d{2}\/\d{2}$/.test(validade))               { mostrarErroPagamento('Validade inválida — usa o formato MM/AA.'); return; }
+    if (cvv.length < 3)                                 { mostrarErroPagamento('CVV inválido — 3 ou 4 dígitos.'); return; }
+
+    // Animação de loading no botão
+    const btn = document.getElementById('btn-confirmar');
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> A processar...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+        document.getElementById('form-doacao-final').submit();
+    }, 1800);
 }
 </script>
 
