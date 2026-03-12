@@ -53,7 +53,7 @@ try {
 }
 
 $categorias_icones = [
-    'Social'      => 'fa-hands-holding-heart',
+    'Social'      => 'fa-people-group',
     'Alimentação' => 'fa-bowl-food',
     'Educação'    => 'fa-graduation-cap',
     'Saúde'       => 'fa-heart-pulse',
@@ -65,6 +65,11 @@ $categorias_icones = [
 <?php include 'includes/header.php'; ?>
 
 <div class="campanhas-page">
+    <?php if (isset($_GET['pendente'])): ?>
+    <div class="alert alert-sucesso" style="margin-bottom:0; border-radius:0; border-left:4px solid var(--verde);">
+        <i class="fa fa-clock"></i> <strong>Campanha submetida!</strong> Está a aguardar aprovação pelo administrador. Será notificado quando for ativada.
+    </div>
+    <?php endif; ?>
     <!-- Cabeçalho -->
     <div class="campanhas-header">
         <div>

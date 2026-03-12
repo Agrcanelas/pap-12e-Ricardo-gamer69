@@ -1179,3 +1179,174 @@ textarea.form-input { resize: vertical; min-height: 120px; }
     .hero-stats { flex-direction: column; gap: 20px; }
     .stats-grid { grid-template-columns: 1fr; }
 }
+
+
+/* ============================================================
+   ANIMAÇÕES
+   ============================================================ */
+
+/* Fade + slide para cima — entrada geral de página */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Fade simples */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Pulse suave para elementos de destaque */
+@keyframes pulseSoft {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.04); }
+}
+
+/* Entrada da navbar */
+.navbar {
+    animation: fadeIn 0.4s ease both;
+}
+
+/* Hero */
+.hero h1 {
+    animation: fadeInUp 0.6s ease both;
+}
+.hero p {
+    animation: fadeInUp 0.6s 0.1s ease both;
+}
+.hero-actions {
+    animation: fadeInUp 0.6s 0.2s ease both;
+}
+.hero-stats {
+    animation: fadeInUp 0.6s 0.3s ease both;
+}
+
+/* Cards de campanha — entram em cascata */
+.card-campanha {
+    animation: fadeInUp 0.5s ease both;
+}
+.card-campanha:nth-child(1) { animation-delay: 0.05s; }
+.card-campanha:nth-child(2) { animation-delay: 0.10s; }
+.card-campanha:nth-child(3) { animation-delay: 0.15s; }
+.card-campanha:nth-child(4) { animation-delay: 0.20s; }
+.card-campanha:nth-child(5) { animation-delay: 0.25s; }
+.card-campanha:nth-child(6) { animation-delay: 0.30s; }
+
+/* Hover no card mais expressivo */
+.card-campanha {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+.card-campanha:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.10);
+}
+
+/* Stat cards do admin e homepage */
+.stat-card {
+    animation: fadeInUp 0.5s ease both;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.09);
+}
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.10s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* Botões — bounce subtil ao hover */
+.btn-primary {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-primary:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 6px 20px rgba(2, 169, 92, 0.35);
+}
+.btn-primary:active {
+    transform: scale(0.97);
+}
+
+/* Formulários — campos ganham destaque ao focar */
+.form-input:focus {
+    transform: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0 0 3px rgba(2, 169, 92, 0.12);
+}
+
+/* Barra de progresso animada */
+.progress-bar-fill {
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Alertas */
+.alert {
+    animation: fadeInUp 0.4s ease both;
+}
+
+/* Página de campanha individual */
+.campanha-main,
+.campanha-sidebar {
+    animation: fadeInUp 0.5s ease both;
+}
+.campanha-sidebar {
+    animation-delay: 0.1s;
+}
+
+/* Modal de doação */
+#modal-doacao > div {
+    animation: fadeInUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Badges */
+.badge {
+    transition: transform 0.2s ease;
+}
+.badge:hover {
+    transform: scale(1.08);
+}
+
+/* Links da navbar */
+.navbar-links a {
+    position: relative;
+    transition: color 0.2s ease;
+}
+.navbar-links a:not(.btn):not(.navbar-logo)::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--verde);
+    transition: width 0.25s ease;
+    border-radius: 2px;
+}
+.navbar-links a:not(.btn):not(.navbar-logo):hover::after {
+    width: 100%;
+}
+
+/* Tabela admin — linhas com hover suave */
+.admin-table tbody tr {
+    transition: background 0.15s ease;
+}
+.admin-table tbody tr:hover {
+    background: var(--cinza-bg);
+}
+
+/* Sidebar do perfil */
+.perfil-sidebar {
+    animation: fadeInUp 0.5s ease both;
+}
+.perfil-content {
+    animation: fadeInUp 0.5s 0.1s ease both;
+}
+
+/* Ícone de câmara no avatar do perfil */
+.avatar-wrapper label {
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.avatar-wrapper:hover label {
+    transform: scale(1.15);
+}

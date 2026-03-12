@@ -12,8 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $id_campanha = intval($_POST['id_campanha'] ?? 0);
 $montante    = floatval($_POST['montante'] ?? 0);
 $mensagem    = trim($_POST['mensagem'] ?? '');
-$anonimo     = isset($_POST['anonimo']) ? 1 : 0;
-    header("Location: obrigado.php?campanha=$id_campanha&valor=$montante"); exit;
+$anonimo     = intval($_POST['anonimo'] ?? 0) === 1 ? 1 : 0;
 
 if ($id_campanha <= 0 || $montante < 1) {
     header("Location: campanha.php?id=$id_campanha#doar"); exit;

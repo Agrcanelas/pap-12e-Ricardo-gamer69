@@ -30,7 +30,15 @@ $pageTitle = $pageTitle ?? 'DOA+';
                     <i class="fa fa-plus"></i> Criar Campanha
                 </a>
                 <a href="<?php echo $baseUrl ?? ''; ?>perfil.php" class="navbar-user">
-                    <div class="user-avatar-sm"><?php echo strtoupper(mb_substr($_SESSION['user_nome'], 0, 1)); ?></div>
+                    <?php if (!empty($_SESSION['user_foto'])): ?>
+                        <img src="<?php echo ($baseUrl ?? '') . 'uploads/perfis/' . htmlspecialchars($_SESSION['user_foto']); ?>"
+                             style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--verde);"
+                             alt=""
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="user-avatar-sm" style="display:none;"><?php echo strtoupper(mb_substr($_SESSION['user_nome'], 0, 1)); ?></div>
+                    <?php else: ?>
+                        <div class="user-avatar-sm"><?php echo strtoupper(mb_substr($_SESSION['user_nome'], 0, 1)); ?></div>
+                    <?php endif; ?>
                     <span class="hide-mobile" style="font-weight:600; color:var(--verde);">
                         <?php echo htmlspecialchars(explode(' ', $_SESSION['user_nome'])[0]); ?>
                     </span>

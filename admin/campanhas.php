@@ -130,6 +130,9 @@ $status_opts = ['ativa'=>'Ativa','pausada'=>'Pausada','concluida'=>'Concluída',
                 <td style="font-size:0.8rem; color:var(--cinza-texto);"><?php echo date('d/m/Y', strtotime($c['data_criacao'])); ?></td>
                 <td>
                     <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                        <a href="../campanha.php?id=<?php echo $c['id']; ?>" class="btn btn-sm btn-outline" style="padding:4px 10px; font-size:0.78rem;" title="Pré-visualizar" target="_blank">
+                            <i class="fa fa-eye"></i>
+                        </a>
                         <a href="../editar-campanha.php?id=<?php echo $c['id']; ?>" class="btn btn-sm btn-outline" style="padding:4px 10px; font-size:0.78rem;" title="Editar">
                             <i class="fa fa-pen"></i>
                         </a>

@@ -34,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['foto_perfil']) && $_
                 }
                 $pdo->prepare("UPDATE utilizadores SET foto_perfil = :foto WHERE id = :id")
                     ->execute(['foto' => $nome_ficheiro, 'id' => $user_id]);
-                $msg_tipo = 'sucesso'; $msg_texto = 'Foto de perfil atualizada!';
+                $_SESSION['user_foto'] = $nome_ficheiro;
+                header("Location: perfil.php?foto=ok"); exit;
             } catch (PDOException $e) {
                 $msg_tipo = 'erro'; $msg_texto = 'Erro ao guardar a foto.';
             }
@@ -54,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remover_foto'])) {
             unlink(__DIR__ . '/uploads/perfis/' . $foto_antiga);
         }
         $pdo->prepare("UPDATE utilizadores SET foto_perfil = NULL WHERE id = :id")->execute(['id' => $user_id]);
+        unset($_SESSION['user_foto']);
         $msg_tipo = 'sucesso'; $msg_texto = 'Foto de perfil removida.';
     } catch (PDOException $e) {
         $msg_tipo = 'erro'; $msg_texto = 'Erro ao remover a foto.';
@@ -122,7 +124,9 @@ try {
     $minhas_campanhas = $stmt_c->fetchAll();
 
     // Doações feitas
-    $stmt_d = $pdo->prepare("SELECT d.montante, d.data_doacao, c.titulo FROM doacoes d JOIN campanhas c ON d.id_campanha = c.id WHERE d.id_doador = :id ORDER BY d.data_doacao DESC LIMIT 10");
+    $stmt_d = $pdo->prepare("SELECT d.id, d.montante, d.data_doacao, c.titulo, c.id as campanha_id,
+        (SELECT estado FROM reembolsos r WHERE r.id_doacao = d.id ORDER BY r.data_pedido DESC LIMIT 1) as reembolso_estado
+        FROM doacoes d JOIN campanhas c ON d.id_campanha = c.id WHERE d.id_doador = :id ORDER BY d.data_doacao DESC LIMIT 10");
     $stmt_d->execute(['id' => $user_id]);
     $minhas_doacoes = $stmt_d->fetchAll();
 } catch (PDOException $e) {
@@ -131,6 +135,7 @@ try {
 }
 
 $tab_ativa = $_GET['tab'] ?? 'conta';
+if (isset($_GET['foto'])) { $msg_tipo = 'sucesso'; $msg_texto = 'Foto de perfil atualizada!'; }
 ?>
 <?php include 'includes/header.php'; ?>
 
@@ -304,6 +309,12 @@ $tab_ativa = $_GET['tab'] ?? 'conta';
             <h2>Donativos feitos</h2>
             <span class="subtitle"><?php echo count($minhas_doacoes); ?> donativos realizados.</span>
 
+            <?php if (isset($_GET['reembolso'])): ?>
+            <div class="alert alert-sucesso" style="margin-top:16px;">
+                <i class="fa fa-check-circle"></i> Pedido de reembolso submetido! Aguarda a resposta do administrador.
+            </div>
+            <?php endif; ?>
+
             <?php if (empty($minhas_doacoes)): ?>
                 <div class="sem-resultados">
                     <div class="icon">💝</div>
@@ -319,7 +330,27 @@ $tab_ativa = $_GET['tab'] ?? 'conta';
                             <div style="font-weight:600;font-size:0.95rem;"><?php echo htmlspecialchars($d['titulo']); ?></div>
                             <div style="font-size:0.8rem;color:var(--cinza-texto);"><?php echo date('d/m/Y', strtotime($d['data_doacao'])); ?></div>
                         </div>
-                        <span style="font-weight:700;color:var(--verde);font-size:1.1rem;">€<?php echo number_format($d['montante'], 2, ',', '.'); ?></span>
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <span style="font-weight:700;color:var(--verde);font-size:1.1rem;">€<?php echo number_format($d['montante'], 2, ',', '.'); ?></span>
+                            <?php if ($d['reembolso_estado'] === 'pendente'): ?>
+                                <span style="background:#fffbeb;color:#92400e;border:1px solid #f59e0b;border-radius:20px;padding:3px 10px;font-size:0.75rem;font-weight:600;">
+                                    <i class="fa fa-clock"></i> Reembolso pendente
+                                </span>
+                            <?php elseif ($d['reembolso_estado'] === 'aprovado'): ?>
+                                <span style="background:var(--verde-claro);color:var(--verde-escuro);border-radius:20px;padding:3px 10px;font-size:0.75rem;font-weight:600;">
+                                    <i class="fa fa-check"></i> Reembolso aprovado
+                                </span>
+                            <?php elseif ($d['reembolso_estado'] === 'rejeitado'): ?>
+                                <span style="background:#fef2f2;color:#b91c1c;border-radius:20px;padding:3px 10px;font-size:0.75rem;font-weight:600;">
+                                    <i class="fa fa-times"></i> Reembolso rejeitado
+                                </span>
+                            <?php else: ?>
+                                <a href="pedir-reembolso.php?doacao=<?php echo $d['id']; ?>"
+                                   style="font-size:0.78rem;color:var(--cinza-texto);text-decoration:underline;white-space:nowrap;">
+                                    Pedir reembolso
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <?php endforeach; ?>
                 </div>

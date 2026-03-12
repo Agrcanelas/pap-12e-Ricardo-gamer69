@@ -45,6 +45,20 @@ try {
 
 <div class="admin-page">
 
+    <?php if ($stats['campanhas_pendentes'] > 0): ?>
+    <div style="background:#fffbeb; border:1px solid #f59e0b; border-radius:10px; padding:14px 20px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fa fa-clock" style="color:#f59e0b; font-size:1.2rem;"></i>
+            <span style="font-weight:600; color:#92400e;">
+                <?php echo $stats['campanhas_pendentes']; ?> campanha<?php echo $stats['campanhas_pendentes'] > 1 ? 's' : ''; ?> a aguardar aprovação
+            </span>
+        </div>
+        <a href="campanhas.php?status=pendente" class="btn btn-sm" style="background:#f59e0b; color:white; border:none;">
+            <i class="fa fa-eye"></i> Rever agora
+        </a>
+    </div>
+    <?php endif; ?>
+
     <!-- ESTATÍSTICAS -->
     <div class="stats-grid">
         <div class="stat-card">
@@ -98,7 +112,7 @@ try {
                         <td style="color:var(--cinza-texto); font-size:0.85rem;"><?php echo htmlspecialchars($camp['criador'] ?? '—'); ?></td>
                         <td><span class="badge badge-<?php echo $camp['status']; ?>"><?php echo ucfirst($camp['status']); ?></span></td>
                         <td>
-                            <a href="campanha-acao.php?id=<?php echo $camp['id']; ?>&acao=editar" class="btn btn-sm btn-outline" style="padding:4px 10px; font-size:0.78rem;">Editar</a>
+                            <a href="../editar-campanha.php?id=<?php echo $camp['id']; ?>" class="btn btn-sm btn-outline" style="padding:4px 10px; font-size:0.78rem;">Editar</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>

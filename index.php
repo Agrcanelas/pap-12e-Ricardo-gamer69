@@ -23,7 +23,7 @@ try {
 }
 
 $categorias_icones = [
-    'Social'      => 'fa-hands-holding-heart',
+    'Social'      => 'fa-people-group',
     'Alimentação' => 'fa-bowl-food',
     'Educação'    => 'fa-graduation-cap',
     'Saúde'       => 'fa-heart-pulse',

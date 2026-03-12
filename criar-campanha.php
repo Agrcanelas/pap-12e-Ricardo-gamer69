@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$erro) {
             try {
-                $stmt = $pdo->prepare("INSERT INTO campanhas (titulo, descricao, categoria, valor_objetivo, instituicao, id_criador, data_inicio, data_fim, status, imagem) VALUES (:titulo, :descricao, :categoria, :objetivo, :instituicao, :criador, NOW(), :data_fim, 'ativa', :imagem)");
+                $stmt = $pdo->prepare("INSERT INTO campanhas (titulo, descricao, categoria, valor_objetivo, instituicao, id_criador, data_inicio, data_fim, status, imagem) VALUES (:titulo, :descricao, :categoria, :objetivo, :instituicao, :criador, NOW(), :data_fim, 'pendente', :imagem)");
                 $stmt->execute([
                     'titulo'      => $titulo,
                     'descricao'   => $descricao,
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'imagem'      => $imagem,
                 ]);
                 $novo_id = $pdo->lastInsertId();
-                header("Location: campanha.php?id=$novo_id&criada=1"); exit;
+                header("Location: campanhas.php?pendente=1"); exit;
             } catch (PDOException $e) {
                 $erro = 'Erro ao criar campanha. Tenta novamente.';
             }

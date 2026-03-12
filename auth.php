@@ -13,7 +13,7 @@ if (empty($email) || empty($senha)) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT id, nome, senha, tipo_utilizador, ativo FROM utilizadores WHERE email = :email");
+    $stmt = $pdo->prepare("SELECT id, nome, email, senha, tipo_utilizador, foto_perfil, ativo FROM utilizadores WHERE email = :email");
     $stmt->execute(['email' => $email]);
     $user = $stmt->fetch();
 
@@ -23,6 +23,9 @@ try {
         $_SESSION['user_nome']        = $user['nome'];
         $_SESSION['user_email']       = $user['email'];
         $_SESSION['tipo_utilizador']  = $user['tipo_utilizador'];
+        if (!empty($user['foto_perfil'])) {
+            $_SESSION['user_foto'] = $user['foto_perfil'];
+        }
 
         $redirect = $_SESSION['redirect_after_login'] ?? 'index.php';
         unset($_SESSION['redirect_after_login']);

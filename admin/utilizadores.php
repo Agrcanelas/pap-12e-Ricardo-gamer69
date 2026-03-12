@@ -6,11 +6,28 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['tipo_utilizador'] ?? '') !== 'ad
     header("Location: ../index.php"); exit;
 }
 
+// Identificar o super admin (conta original — admin@doaplus.pt)
+$stmt_sa = $pdo->prepare("SELECT id FROM utilizadores WHERE email = 'admin@doaplus.pt' LIMIT 1");
+$stmt_sa->execute();
+$super_admin_id = (int) ($stmt_sa->fetchColumn() ?: 0);
+$eu_sou_super_admin = ($_SESSION['user_id'] === $super_admin_id);
+
 $acao      = $_GET['acao'] ?? '';
 $target_id = intval($_GET['id'] ?? 0);
 $meu_id    = $_SESSION['user_id'];
 
 if ($acao && $target_id && $target_id !== $meu_id) {
+    // Proteger o super admin — ninguém lhe pode tirar permissões nem eliminar
+    if ($target_id === $super_admin_id && !$eu_sou_super_admin) {
+        header("Location: utilizadores.php?erro=protegido"); exit;
+    }
+    // Só o super admin pode rebaixar ou eliminar outros admins
+    $stmt_t = $pdo->prepare("SELECT tipo_utilizador FROM utilizadores WHERE id=:id");
+    $stmt_t->execute(['id' => $target_id]);
+    $tipo_target = $stmt_t->fetchColumn();
+    if ($tipo_target === 'admin' && in_array($acao, ['tornar_user','bloquear','eliminar']) && !$eu_sou_super_admin) {
+        header("Location: utilizadores.php?erro=sem_permissao"); exit;
+    }
     try {
         switch ($acao) {
             case 'tornar_admin':
@@ -63,6 +80,16 @@ try {
     <?php if (isset($_GET['ok'])): ?>
         <div class="alert alert-sucesso" style="margin-bottom:20px;"><i class="fa fa-check-circle"></i> Ação realizada com sucesso.</div>
     <?php endif; ?>
+    <?php if (isset($_GET['erro'])): ?>
+        <div class="alert alert-erro" style="margin-bottom:20px;">
+            <i class="fa fa-shield-halved"></i>
+            <?php if ($_GET['erro'] === 'protegido'): ?>
+                Não é possível modificar a conta do super administrador.
+            <?php else: ?>
+                Não tens permissão para modificar outro administrador. Apenas o super admin pode fazê-lo.
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 
     <!-- Filtros -->
     <form method="GET" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; align-items:flex-end;">
@@ -102,7 +129,13 @@ try {
             <?php if (empty($utilizadores)): ?>
                 <tr><td colspan="9" style="text-align:center; padding:40px; color:var(--cinza-texto);">Nenhum utilizador encontrado.</td></tr>
             <?php endif; ?>
-            <?php foreach ($utilizadores as $u): $e_eu = ($u['id'] == $meu_id); ?>
+            <?php foreach ($utilizadores as $u): 
+                $e_eu = ($u['id'] == $meu_id);
+                $e_super_admin = ($u['id'] === $super_admin_id);
+                $e_admin = ($u['tipo_utilizador'] === 'admin');
+                // Admins normais não podem mexer noutros admins — só o super admin pode
+                $pode_modificar = $eu_sou_super_admin || !$e_admin;
+            ?>
             <tr style="<?php echo !$u['ativo'] ? 'opacity:0.6;' : ''; ?>">
                 <td style="color:var(--cinza-texto); font-size:0.82rem;">#<?php echo $u['id']; ?></td>
                 <td>
@@ -112,6 +145,7 @@ try {
                         </div>
                         <span style="font-weight:600; font-size:0.9rem;"><?php echo htmlspecialchars($u['nome']); ?></span>
                         <?php if ($e_eu): ?><span style="font-size:0.72rem; color:var(--verde); font-weight:600;">(tu)</span><?php endif; ?>
+                        <?php if ($e_super_admin): ?><span title="Super Admin — dono do site" style="font-size:0.8rem;" >👑</span><?php endif; ?>
                     </div>
                 </td>
                 <td style="font-size:0.85rem; color:var(--cinza-texto);"><?php echo htmlspecialchars($u['email']); ?></td>
@@ -129,27 +163,35 @@ try {
                 <td>
                     <?php if (!$e_eu): ?>
                     <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                        <?php if ($u['tipo_utilizador'] !== 'admin'): ?>
-                        <a href="?acao=tornar_admin&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:#faf5ff; color:#7c3aed;" title="Tornar admin" onclick="return confirm('Tornar este utilizador admin?')">
-                            <i class="fa fa-shield"></i>
-                        </a>
+                        <?php if ($pode_modificar): ?>
+                            <?php if (!$e_admin): ?>
+                            <a href="?acao=tornar_admin&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:#faf5ff; color:#7c3aed;" title="Tornar admin" onclick="return confirm('Tornar este utilizador admin?')">
+                                <i class="fa fa-shield"></i>
+                            </a>
+                            <?php elseif (!$e_super_admin): ?>
+                            <a href="?acao=tornar_user&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:var(--cinza-bg); color:var(--cinza-texto);" title="Remover admin" onclick="return confirm('Remover permissões de admin?')">
+                                <i class="fa fa-user"></i>
+                            </a>
+                            <?php endif; ?>
+                            <?php if (!$e_super_admin): ?>
+                                <?php if ($u['ativo']): ?>
+                                <a href="?acao=bloquear&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:#fffbeb; color:#b45309;" title="Bloquear" onclick="return confirm('Bloquear este utilizador?')">
+                                    <i class="fa fa-ban"></i>
+                                </a>
+                                <?php else: ?>
+                                <a href="?acao=desbloquear&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:var(--verde-claro); color:var(--verde-escuro);" title="Desbloquear" onclick="return confirm('Desbloquear este utilizador?')">
+                                    <i class="fa fa-check"></i>
+                                </a>
+                                <?php endif; ?>
+                                <a href="?acao=eliminar&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:#fef2f2; color:#b91c1c;" title="Eliminar" onclick="return confirm('Eliminar este utilizador, as suas campanhas e doações? Irreversível!')">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            <?php endif; ?>
                         <?php else: ?>
-                        <a href="?acao=tornar_user&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:var(--cinza-bg); color:var(--cinza-texto);" title="Remover admin" onclick="return confirm('Remover permissões de admin?')">
-                            <i class="fa fa-user"></i>
-                        </a>
+                            <span style="font-size:0.78rem; color:var(--cinza-texto);" title="Só o super admin pode modificar outros admins">
+                                <i class="fa fa-lock"></i> Admin protegido
+                            </span>
                         <?php endif; ?>
-                        <?php if ($u['ativo']): ?>
-                        <a href="?acao=bloquear&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:#fffbeb; color:#b45309;" title="Bloquear" onclick="return confirm('Bloquear este utilizador?')">
-                            <i class="fa fa-ban"></i>
-                        </a>
-                        <?php else: ?>
-                        <a href="?acao=desbloquear&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:var(--verde-claro); color:var(--verde-escuro);" title="Desbloquear" onclick="return confirm('Desbloquear este utilizador?')">
-                            <i class="fa fa-check"></i>
-                        </a>
-                        <?php endif; ?>
-                        <a href="?acao=eliminar&id=<?php echo $u['id']; ?>" class="btn btn-sm" style="padding:4px 10px; font-size:0.78rem; background:#fef2f2; color:#b91c1c;" title="Eliminar" onclick="return confirm('Eliminar este utilizador, as suas campanhas e doações? Irreversível!')">
-                            <i class="fa fa-trash"></i>
-                        </a>
                     </div>
                     <?php else: ?>
                         <span style="font-size:0.78rem; color:var(--cinza-texto);">—</span>

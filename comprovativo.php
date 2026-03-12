@@ -29,7 +29,7 @@ if (!$c || !$montante) {
 $perc       = $c['valor_objetivo'] > 0 ? min(100, round(($c['valor_angariado'] / $c['valor_objetivo']) * 100)) : 0;
 $ref        = 'DOA-' . strtoupper(substr(md5($campanha_id . $_SESSION['user_id'] . $montante), 0, 8));
 $data_hora  = $doacao ? date('d/m/Y \à\s H:i:s', strtotime($doacao['data_doacao'])) : date('d/m/Y \à\s H:i:s');
-$eh_anonimo = $doacao && $doacao['anonimo'];
+$eh_anonimo = $doacao && intval($doacao['anonimo']) === 1;
 
 $rows = [
     ['Doador',      $eh_anonimo ? 'Anónimo' : htmlspecialchars($user['nome'] ?? '—')],

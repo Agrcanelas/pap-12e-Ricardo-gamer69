@@ -33,16 +33,7 @@
                 <h4>Apoio</h4>
                 <a href="termos-condicoes.php">Termos e Condições</a>
                 <a href="politica-privacidade.php">Política de Privacidade</a>
-                <a href="mailto:suporte@doaplus.pt">Contacto</a>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <p>© <?php echo date('Y'); ?> DOA+ — Todos os direitos reservados.</p>
-            <div class="footer-bottom-links">
-                <a href="termos-condicoes.php">Termos</a>
-                <a href="politica-privacidade.php">Privacidade</a>
-                <a href="mailto:suporte@doaplus.pt">Contacto</a>
+                <a href="contacto.php">Contacto</a>
             </div>
         </div>
     </div>

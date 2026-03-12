@@ -28,6 +28,17 @@ $baseUrl = '../';
             <a href="utilizadores.php" class="hide-mobile">Utilizadores</a>
             <a href="campanhas.php"    class="hide-mobile">Campanhas</a>
             <a href="doacoes.php"      class="hide-mobile">Doações</a>
+            <a href="reembolsos.php"   class="hide-mobile" style="position:relative;">
+                Reembolsos
+                <?php
+                try {
+                    $pending_r = $pdo->query("SELECT COUNT(*) FROM reembolsos WHERE estado='pendente'")->fetchColumn();
+                    if ($pending_r > 0): ?>
+                        <span style="position:absolute;top:-6px;right:-10px;background:#ef4444;color:white;border-radius:50%;width:16px;height:16px;font-size:0.65rem;display:flex;align-items:center;justify-content:center;font-weight:700;"><?php echo $pending_r; ?></span>
+                    <?php endif;
+                } catch (Exception $e) {}
+                ?>
+            </a>
             <a href="../index.php" class="hide-mobile" style="color:var(--cinza-texto);">
                 <i class="fa fa-arrow-left"></i> Site
             </a>

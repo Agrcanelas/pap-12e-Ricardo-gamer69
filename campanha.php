@@ -3,8 +3,14 @@ require_once 'config.php';
 
 $campanha_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
+$is_admin = ($_SESSION['tipo_utilizador'] ?? '') === 'admin';
+
 try {
-    $stmt = $pdo->prepare("SELECT c.*, u.nome as criador_nome FROM campanhas c LEFT JOIN utilizadores u ON c.id_criador = u.id WHERE c.id = :id AND c.status IN ('ativa', 'concluida')");
+    if ($is_admin) {
+        $stmt = $pdo->prepare("SELECT c.*, u.nome as criador_nome FROM campanhas c LEFT JOIN utilizadores u ON c.id_criador = u.id WHERE c.id = :id");
+    } else {
+        $stmt = $pdo->prepare("SELECT c.*, u.nome as criador_nome FROM campanhas c LEFT JOIN utilizadores u ON c.id_criador = u.id WHERE c.id = :id AND c.status IN ('ativa', 'concluida')");
+    }
     $stmt->execute(['id' => $campanha_id]);
     $c = $stmt->fetch();
 } catch (PDOException $e) {
@@ -54,7 +60,7 @@ $falta = max(0, $c['valor_objetivo'] - $c['valor_angariado']);
 $pageTitle = htmlspecialchars($c['titulo']);
 
 $categorias_icones = [
-    'Social'      => 'fa-hands-holding-heart',
+    'Social'      => 'fa-people-group',
     'Alimentação' => 'fa-bowl-food',
     'Educação'    => 'fa-graduation-cap',
     'Saúde'       => 'fa-heart-pulse',
@@ -65,6 +71,33 @@ $categorias_icones = [
 $icone = $categorias_icones[$c['categoria']] ?? 'fa-heart';
 ?>
 <?php include 'includes/header.php'; ?>
+
+<?php if ($is_admin && $c['status'] !== 'ativa'): ?>
+<div style="background:<?php echo $c['status']==='pendente' ? '#fffbeb' : '#f8f8f8'; ?>; border-bottom:3px solid <?php echo $c['status']==='pendente' ? '#f59e0b' : '#94a3b8'; ?>; padding:12px 24px;">
+    <div class="container" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem;">
+            <i class="fa fa-<?php echo $c['status']==='pendente' ? 'clock' : 'eye'; ?>" style="color:<?php echo $c['status']==='pendente' ? '#f59e0b' : '#94a3b8'; ?>;"></i>
+            <span>
+                <strong>Pré-visualização admin</strong> — Esta campanha está
+                <strong><?php echo $c['status']==='pendente' ? 'pendente de aprovação' : $c['status']; ?></strong>
+                e não é visível ao público.
+            </span>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <?php if ($c['status'] === 'pendente'): ?>
+            <a href="admin/campanhas.php?acao=ativar&id=<?php echo $c['id']; ?>"
+               style="background:var(--verde); color:white; border:none; border-radius:8px; padding:8px 16px; font-size:0.85rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"
+               onclick="return confirm('Aprovar e ativar esta campanha?')">
+                <i class="fa fa-check"></i> Aprovar campanha
+            </a>
+            <?php endif; ?>
+            <a href="admin/campanhas.php" style="background:white; color:var(--cinza-texto); border:1px solid var(--cinza-borda); border-radius:8px; padding:8px 16px; font-size:0.85rem; text-decoration:none;">
+                <i class="fa fa-arrow-left"></i> Voltar ao admin
+            </a>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Breadcrumb -->
 <div style="background:var(--branco); border-bottom:1px solid var(--cinza-borda); padding:12px 24px;">
@@ -511,14 +544,28 @@ function fecharModal() {
     document.body.style.overflow = '';
 }
 
-// Fechar ao clicar fora
-document.getElementById('modal-doacao').addEventListener('click', function(e) {
-    if (e.target === this) fecharModal();
-});
+window.addEventListener('DOMContentLoaded', function() {
+    // Fechar ao clicar fora
+    document.getElementById('modal-doacao').addEventListener('click', function(e) {
+        if (e.target === this) fecharModal();
+    });
 
-// Fechar com ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') fecharModal();
+    // Fechar com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') fecharModal();
+    });
+
+    // Carregar dados guardados do cartão
+    const saved = localStorage.getItem(cartaoKey);
+    if (saved) {
+        try {
+            const d = JSON.parse(saved);
+            if (d.nome)     document.getElementById('cartao-nome').value = d.nome;
+            if (d.numero)   { document.getElementById('cartao-numero').value = d.numero; formatarCartao(document.getElementById('cartao-numero')); }
+            if (d.validade) document.getElementById('cartao-validade').value = d.validade;
+            if (document.getElementById('guardar-cartao')) document.getElementById('guardar-cartao').checked = true;
+        } catch(e) {}
+    }
 });
 
 function selecionarValor(val, el) {
@@ -580,20 +627,7 @@ function irPasso3() {
 }
 
 let metodoPagamento = 'cartao';
-
-// Carregar dados guardados do cartão
-window.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('doaplusCartao');
-    if (saved) {
-        try {
-            const d = JSON.parse(saved);
-            if (d.nome)     document.getElementById('cartao-nome').value     = d.nome;
-            if (d.numero)   { document.getElementById('cartao-numero').value = d.numero; formatarCartao(document.getElementById('cartao-numero')); }
-            if (d.validade) document.getElementById('cartao-validade').value = d.validade;
-            if (document.getElementById('guardar-cartao')) document.getElementById('guardar-cartao').checked = true;
-        } catch(e) {}
-    }
-});
+const cartaoKey = 'doaplusCartao_<?php echo $_SESSION["user_id"] ?? 0; ?>';
 
 function formatarCartao(input) {
     const digits = input.value.replace(/\D/g, '').substring(0, 16);
@@ -647,21 +681,30 @@ function confirmarDoacao() {
     const validade = document.getElementById('cartao-validade').value;
     const cvv      = document.getElementById('cartao-cvv').value;
 
-    if (!nome)                                          { mostrarErroPagamento('Introduz o nome no cartão.'); return; }
-    if (numero.length < 16)                             { mostrarErroPagamento('Número de cartão inválido — precisas de 16 dígitos.'); return; }
-    if (!/^\d{2}\/\d{2}$/.test(validade))               { mostrarErroPagamento('Validade inválida — usa o formato MM/AA.'); return; }
-    if (cvv.length < 3)                                 { mostrarErroPagamento('CVV inválido — 3 ou 4 dígitos.'); return; }
+    if (!nome)           { mostrarErroPagamento('Introduz o nome no cartão.'); return; }
+    if (numero.length < 16) { mostrarErroPagamento('Número de cartão inválido — precisas de 16 dígitos.'); return; }
+    if (!/^\d{2}\/\d{2}$/.test(validade)) { mostrarErroPagamento('Validade inválida — usa o formato MM/AA.'); return; }
+
+    // Verificar se o cartão está dentro da validade
+    const [mes, ano] = validade.split('/').map(Number);
+    const agora = new Date();
+    const anoCompleto = 2000 + ano;
+    const expiryDate = new Date(anoCompleto, mes, 1); // 1º dia do mês seguinte ao da validade
+    if (mes < 1 || mes > 12) { mostrarErroPagamento('Mês de validade inválido.'); return; }
+    if (expiryDate <= agora)  { mostrarErroPagamento('O cartão está expirado.'); return; }
+
+    if (cvv.length < 3) { mostrarErroPagamento('CVV inválido — 3 ou 4 dígitos.'); return; }
 
     // Guardar ou limpar dados do cartão
     if (document.getElementById('guardar-cartao')?.checked) {
-        localStorage.setItem('doaplusCartao', JSON.stringify({
+        localStorage.setItem(cartaoKey, JSON.stringify({
             nome:     nome,
             numero:   document.getElementById('cartao-numero').value,
             validade: validade
             // CVV nunca é guardado por segurança
         }));
     } else {
-        localStorage.removeItem('doaplusCartao');
+        localStorage.removeItem(cartaoKey);
     }
 
     // Animação de loading no botão
