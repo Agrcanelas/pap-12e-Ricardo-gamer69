@@ -72,7 +72,7 @@ $categorias_icones = [
 <section class="como-funciona">
     <div class="section-header">
         <span class="section-tag">Como funciona</span>
-        <h2>Três passos para fazer a diferença</h2>
+        <h2>Quatro passos para fazer a diferença</h2>
         <p>Começa em minutos. Sem complicações.</p>
     </div>
     <div class="steps-grid">
